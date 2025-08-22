@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfig {
+    //formlogin에서 사용
     private final CustomUserDetailsService userDetailsService;
     
     @Bean

@@ -20,7 +20,6 @@ public class User {
     Long Id;
     @NonNull
     String username;
-    @NonNull
     String password;
     String userRole;
     @Column(unique=true)
