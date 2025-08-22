@@ -1,0 +1,37 @@
+package com.example.reservation;
+
+import io.micrometer.common.lang.NonNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+@Entity
+@Data
+@Table(name="user_data")
+@RequiredArgsConstructor
+public class User {
+    @Id
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    Long Id;
+    @NonNull
+    String username;
+    @NonNull
+    String password;
+    String userRole;
+    @Column(unique=true)
+    String email;
+    //oauth 정보
+    String provider;
+    String providerId;
+
+    public User(String username, String password, String email) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
+}
