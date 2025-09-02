@@ -1,88 +1,69 @@
 package com.example.reservation;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
 
 
-
-
-@Controller
+@RestController
 @AllArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
     private final static DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-        .appendPattern("MM.dd")
+        .appendPattern("M.d")
         .parseDefaulting(java.time.temporal.ChronoField.YEAR, LocalDate.now().getYear())
         .toFormatter();
     private final ObjectMapper objMapper;
 
     //응답 어떻게 할건지 생각해두기 응답에 넣기? form 써서 넘기기?
     @GetMapping("/{date}")
-    public ResponseEntity<String> getSelectedDatReservation(@PathVariable String date) {
+    public List<ReservationResponse> getSelectedDatReservation(@PathVariable String date) {
         LocalDate selectedDate = LocalDate.parse(date, formatter);
-        List<Reservation> reservList = reservationService.findReservationByDate(selectedDate);
-        String responseBody;
 
-        try {
-            responseBody = objMapper.writeValueAsString(reservList);
-        } catch (JsonProcessingException e) {
-            System.out.println("직렬화 오류 발생" + e);
-            return ResponseEntity.internalServerError().body("error: 서버 내부 오류");
-        }
-
-        return ResponseEntity.ok(responseBody);
+        return reservationService.findReservationByDate(selectedDate)
+            .stream()
+            .map(ReservationResponse::new)
+            .toList();
     }
     
     @PostMapping("/{date}")
-    public void makeReservation(@PathVariable String date, @RequestParam ReservationDto reservationDto,
-        @RequestParam Long resourceId) {
+    public Reservation makeReservation(@PathVariable String date, @RequestBody ReservationDto reservationDto) {
         LocalDate selectedDate = LocalDate.parse(date, formatter);
-        reservationService.makeReservation(reservationDto, resourceId);
+        
+        return reservationService.makeReservation(reservationDto);
     }
     
     @DeleteMapping("/{date}/{time}")
-    public void cancelReservation(@PathVariable String date, @PathVariable LocalDateTime startTime) {
+    public void cancelReservation(@PathVariable String date, @PathVariable LocalTime time) {
         LocalDate selectedDate = LocalDate.parse(date, formatter);
-        reservationService.cancelReservation(selectedDate, startTime);
+        reservationService.cancelReservation(selectedDate, time);
     }
 
     @PutMapping("/{date}/{time}")
-    public void changeReservation(@PathVariable String date, @RequestParam ReservationDto reservationDto, @RequestParam LocalDateTime startTime,
-        Long resourceId) {
+    public void changeReservation(@PathVariable String date, @RequestBody ReservationDto reservationDto, @PathVariable LocalTime time) {
         LocalDate selectedDate = LocalDate.parse(date, formatter);
-        reservationService.changeReservation(selectedDate, startTime, reservationDto, resourceId);
+        reservationService.changeReservation(selectedDate, time, reservationDto);
     }
 
-    @GetMapping("/reservationDetail")
-    public ResponseEntity<String> getUsersReservations() {
-        List<Reservation> reservList = reservationService.findReservationByUser();
-        String reservationList;
-
-        try {
-            reservationList = objMapper.writeValueAsString(reservList);
-        } catch (JsonProcessingException e) {
-            System.out.println("직렬화 오류 발생" + e);
-            return ResponseEntity.internalServerError().body("error: 서버 내부 오류");
-        }
-
-        return ResponseEntity.ok(reservationList);
+    @GetMapping("/detail")
+    public List<ReservationResponse> getUsersReservations() {
+        return reservationService.findReservationByUser()
+            .stream()
+            .map(ReservationResponse::new)
+            .toList();
     }
-    
 }

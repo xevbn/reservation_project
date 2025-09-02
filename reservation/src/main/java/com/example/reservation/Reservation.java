@@ -1,7 +1,7 @@
 package com.example.reservation;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,8 +18,8 @@ public class Reservation {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
     Long id;
     LocalDate date;
-    LocalDateTime startTime;
-    LocalDateTime endTime;
+    LocalTime startTime;
+    LocalTime endTime;
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)

@@ -1,7 +1,6 @@
 package com.example.reservation;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +27,14 @@ import jakarta.persistence.EntityNotFoundException;
 
 @SpringBootTest
 @DirtiesContext
-public class ReservationTest {
+public class ReservationServiceTest {
     @Autowired
     UserRepository userRepository;
     @Autowired
     ReservationService reservationService;
     @Autowired
     ResourceRepository resourceRepository;
-    Long id;
+    String resourceName;
 
     public void makeAuth(int num) {
         User testUser = new User();
@@ -58,7 +57,7 @@ public class ReservationTest {
     public void setUp() {
         Resource resource = new Resource("room13");
         resourceRepository.saveAndFlush(resource);
-        id = resource.getId();
+        resourceName = resource.getName();
 
         makeAuth(10);
     }
@@ -76,10 +75,11 @@ public class ReservationTest {
         ReservationDto reservDto = new ReservationDto();
         LocalDate date = LocalDate.now();
         reservDto.setDate(date);
-        reservDto.setStartTime(LocalDateTime.of(date, LocalTime.of(16, 00)));
-        reservDto.setEndTime(LocalDateTime.of(date, LocalTime.of(17, 00)));
+        reservDto.setStartTime(LocalTime.of(16, 00));
+        reservDto.setEndTime(LocalTime.of(17, 00));
+        reservDto.setResourceName(resourceName);
 
-        reservationService.makeReservation(reservDto, id);
+        reservationService.makeReservation(reservDto);
 
         assertThat(reservationService.findAll()).hasSize(1);
     }
@@ -89,18 +89,20 @@ public class ReservationTest {
         ReservationDto reservDto = new ReservationDto();
         LocalDate date = LocalDate.now();
         reservDto.setDate(date);
-        reservDto.setStartTime(LocalDateTime.of(date, LocalTime.of(16, 00)));
-        reservDto.setEndTime(LocalDateTime.of(date, LocalTime.of(17, 00)));
+        reservDto.setStartTime(LocalTime.of(16, 00));
+        reservDto.setEndTime(LocalTime.of(17, 00));
+        reservDto.setResourceName(resourceName);
 
-        reservationService.makeReservation(reservDto, id);
+        reservationService.makeReservation(reservDto);
 
         ReservationDto reservationDto = new ReservationDto();
         reservationDto.setDate(date);
-        reservationDto.setStartTime(LocalDateTime.of(date, LocalTime.of(16, 00)));
-        reservationDto.setEndTime(LocalDateTime.of(date, LocalTime.of(18, 00)));
+        reservationDto.setStartTime(LocalTime.of(16, 00));
+        reservationDto.setEndTime(LocalTime.of(18, 00));
+        reservationDto.setResourceName(resourceName);
 
         assertThrows(IllegalStateException.class,
-            () -> reservationService.makeReservation(reservationDto, id));
+            () -> reservationService.makeReservation(reservationDto));
     }
 
     //이런 방식의 테스트는 맞지만 h2 환경에서는 부적합 - 테스트 불가
@@ -109,8 +111,9 @@ public class ReservationTest {
         LocalDate date = LocalDate.now();
         ReservationDto reservDto = new ReservationDto();
         reservDto.setDate(date);
-        reservDto.setStartTime(LocalDateTime.of(date, LocalTime.of(18, 0)));
-        reservDto.setEndTime(LocalDateTime.of(date, LocalTime.of(19, 0)));
+        reservDto.setStartTime(LocalTime.of(18, 0));
+        reservDto.setEndTime(LocalTime.of(19, 0));
+        reservDto.setResourceName(resourceName);
 
         int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -121,7 +124,7 @@ public class ReservationTest {
             executorService.submit(() -> {
                 try {
                     makeAuth(num);
-                    reservationService.makeReservation(reservDto, id);
+                    reservationService.makeReservation(reservDto);
                     System.out.println("스레드 " + num + "예약 성공");
                 } catch (Exception e) {
                     System.out.println("예약 실패 : " + e.getMessage());
@@ -140,7 +143,7 @@ public class ReservationTest {
     @Test
     public void cancelNonExistingReservation() throws Exception{
         LocalDate date = LocalDate.now();
-        LocalDateTime start = LocalDateTime.of(date, LocalTime.of(0, 0));
+        LocalTime start = LocalTime.of(0, 0);
         
         assertThrows(EntityNotFoundException.class,
         () -> reservationService.cancelReservation(date, start));
@@ -152,10 +155,11 @@ public class ReservationTest {
         ReservationDto reservDto = new ReservationDto();
         LocalDate date = LocalDate.now().plusDays(1);
         reservDto.setDate(date);
-        reservDto.setStartTime(LocalDateTime.of(date, LocalTime.of(16, 00)));
-        reservDto.setEndTime(LocalDateTime.of(date, LocalTime.of(17, 00)));
+        reservDto.setStartTime(LocalTime.of(16, 00));
+        reservDto.setEndTime(LocalTime.of(17, 00));
+        reservDto.setResourceName(resourceName);
 
-        reservationService.makeReservation(reservDto, id);
+        reservationService.makeReservation(reservDto);
 
         reservationService.cancelReservation(date, reservDto.getStartTime());
 
@@ -167,14 +171,15 @@ public class ReservationTest {
         ReservationDto reservDto = new ReservationDto();
         LocalDate date = LocalDate.now().plusDays(1);
         reservDto.setDate(date);
-        reservDto.setStartTime(LocalDateTime.of(date, LocalTime.of(16, 00)));
-        reservDto.setEndTime(LocalDateTime.of(date, LocalTime.of(17, 00)));
+        reservDto.setStartTime(LocalTime.of(16, 00));
+        reservDto.setEndTime(LocalTime.of(17, 00));
+        reservDto.setResourceName(resourceName);
 
-        reservationService.makeReservation(reservDto, id);
+        reservationService.makeReservation(reservDto);
 
         makeAuth(12);
         assertThrows(EntityNotFoundException.class,
-            () -> reservationService.cancelReservation(date, LocalDateTime.of(date, LocalTime.of(16, 00))));
+            () -> reservationService.cancelReservation(date, LocalTime.of(16, 00)));
     }
 
     @Test
@@ -182,11 +187,12 @@ public class ReservationTest {
         ReservationDto reservDto = new ReservationDto();
         LocalDate date = LocalDate.now().plusDays(1);
         reservDto.setDate(date);
-        reservDto.setStartTime(LocalDateTime.of(date, LocalTime.of(16, 00)));
-        reservDto.setEndTime(LocalDateTime.of(date, LocalTime.of(17, 00)));
+        reservDto.setStartTime(LocalTime.of(16, 00));
+        reservDto.setEndTime(LocalTime.of(17, 00));
+        reservDto.setResourceName(resourceName);
 
         assertThrows(EntityNotFoundException.class,
-            () -> reservationService.changeReservation(date, reservDto.getStartTime(), reservDto, id));
+            () -> reservationService.changeReservation(date, reservDto.getStartTime(), reservDto));
     }
 
     @Test
@@ -196,26 +202,29 @@ public class ReservationTest {
 
         // 1번 예약 16-17
         ReservationDto dto1 = new ReservationDto(date,
-            LocalDateTime.of(date, LocalTime.of(16, 0)),
-            LocalDateTime.of(date, LocalTime.of(17, 0))
+            LocalTime.of(16, 0),
+            LocalTime.of(17, 0),
+            resourceName
         );
-        Reservation r1 = reservationService.makeReservation(dto1, id);
+        Reservation r1 = reservationService.makeReservation(dto1);
 
         // 2번 예약 17-18
         ReservationDto dto2 = new ReservationDto(date,
-            LocalDateTime.of(date, LocalTime.of(17, 0)),
-            LocalDateTime.of(date, LocalTime.of(18, 0))
+            LocalTime.of(17, 0),
+            LocalTime.of(18, 0),
+            resourceName
         );
-        Reservation r2 = reservationService.makeReservation(dto2, id);
+        Reservation r2 = reservationService.makeReservation(dto2);
 
         // 2번 예약을 16-19로 변경 시도
         ReservationDto changeDto = new ReservationDto(date,
-            LocalDateTime.of(date, LocalTime.of(16, 0)),
-            LocalDateTime.of(date, LocalTime.of(19, 0))
+            LocalTime.of(16, 0),
+            LocalTime.of(19, 0),
+            resourceName
         );
 
         assertThrows(IllegalStateException.class, () -> {
-            reservationService.changeReservation(date, r2.getStartTime(), changeDto, id);
+            reservationService.changeReservation(date, r2.getStartTime(), changeDto);
         });
     }
 
@@ -223,44 +232,46 @@ public class ReservationTest {
     @Transactional
     public void changeReservation() {
         LocalDate date = LocalDate.now().plusDays(1);
-        LocalDateTime start = LocalDateTime.of(date, LocalTime.of(16, 00));
-        LocalDateTime end = LocalDateTime.of(date, LocalTime.of(17, 00));
-        ReservationDto dto = new ReservationDto(date, start, end);
+        LocalTime start = LocalTime.of(16, 00);
+        LocalTime end = LocalTime.of(17, 00);
+        ReservationDto dto = new ReservationDto(date, start, end, resourceName);
 
-        reservationService.makeReservation(dto, id);
+        reservationService.makeReservation(dto);
 
         ReservationDto change = new ReservationDto(
             date,
-            LocalDateTime.of(date, LocalTime.of(18, 0)),
-            LocalDateTime.of(date, LocalTime.of(19, 0))
+            LocalTime.of(18, 0),
+            LocalTime.of(19, 0),
+            resourceName
         );
 
-        reservationService.changeReservation(date, start, change, id);
+        reservationService.changeReservation(date, start, change);
         
         Reservation reservation = reservationService.findAll().iterator().next();
-        assertThat(reservation.getStartTime().isEqual(LocalDateTime.of(date, LocalTime.of(18, 0))) &&
-            reservation.getEndTime().isEqual(LocalDateTime.of(date, LocalTime.of(19, 0))));
+        assertThat(reservation.getStartTime().equals(LocalTime.of(18, 0)) &&
+            reservation.getEndTime().equals(LocalTime.of(19, 0)));
     }
 
     @Test
     @Transactional
     public void tryToChangeAnotherUsersReservation() throws Exception{
         LocalDate date = LocalDate.now().plusDays(1);
-        LocalDateTime start = LocalDateTime.of(date, LocalTime.of(16, 00));
-        LocalDateTime end = LocalDateTime.of(date, LocalTime.of(17, 00));
-        ReservationDto dto = new ReservationDto(date, start, end);
+        LocalTime start = LocalTime.of(16, 00);
+        LocalTime end =  LocalTime.of(17, 00);
+        ReservationDto dto = new ReservationDto(date, start, end, resourceName);
 
-        reservationService.makeReservation(dto, id);
+        reservationService.makeReservation(dto);
 
         makeAuth(11);
 
         ReservationDto change = new ReservationDto(
             date,
-            LocalDateTime.of(date, LocalTime.of(18, 0)),
-            LocalDateTime.of(date, LocalTime.of(19, 0))
+            LocalTime.of(18, 0),
+            LocalTime.of(19, 0),
+            resourceName
         );
 
         assertThrows(EntityNotFoundException.class,
-            () -> reservationService.changeReservation(date, start, change, id));
+            () -> reservationService.changeReservation(date, start, change));
     }
 }

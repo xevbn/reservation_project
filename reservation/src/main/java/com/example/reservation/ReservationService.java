@@ -1,15 +1,13 @@
 package com.example.reservation;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
@@ -22,22 +20,24 @@ public class ReservationService {
     private final ResourceRepository resourceRepository;
 
     //예약 작성
-    public Reservation makeReservation(ReservationDto reservationDto, Long resourceId) {
-        Resource resource = resourceRepository.findById(resourceId)
-            .orElseThrow(() -> new EntityNotFoundException("해당 리소스를 찾을 수 없습니다. " + resourceId));
+    public Reservation makeReservation(ReservationDto reservationDto) {
+        String resourceName = reservationDto.getResourceName();
+        Resource resource = resourceRepository.findByName(resourceName)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+            
         LocalDate date = reservationDto.getDate();
-        LocalDateTime start = reservationDto.getStartTime();
-        LocalDateTime end = reservationDto.getEndTime();
+        LocalTime start = reservationDto.getStartTime();
+        LocalTime end = reservationDto.getEndTime();
 
-        boolean overlaps = reservationRepository.existsOverlap(resource, start, end);
+        boolean overlaps = reservationRepository.existsOverlap(resource, start, end, date);
             
         if(overlaps) {
-            throw new IllegalStateException("이미 예약된 시간입니다.");
+            throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
         
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없음 " + username));
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Reservation newReservation = new Reservation();
 
@@ -59,19 +59,19 @@ public class ReservationService {
     public List<Reservation> findReservationByUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다. " + username));
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return reservationRepository.findByUser(user);
     }
 
     //예약 취소
-    public void cancelReservation(LocalDate date, LocalDateTime startTime) {
+    public void cancelReservation(LocalDate date, LocalTime startTime) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다. " + username));
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Reservation reservation = reservationRepository.findByUserAndStartTimeAndDate(user, startTime, date)
-            .orElseThrow(() -> new EntityNotFoundException("해당 예약을 찾을 수 없습니다."));
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         
         //작성자와 현재 사용자 일치 확인
         //이 코드 의미 없는데
@@ -83,16 +83,17 @@ public class ReservationService {
     }
 
     //예약 변경
-    public void changeReservation(LocalDate date, LocalDateTime startTime, ReservationDto reservationDto, Long resourceId) {
-        Resource resource = resourceRepository.findById(resourceId)
-            .orElseThrow(() -> new EntityNotFoundException("해당 리소스를 찾을 수 없습니다. " + resourceId));
+    public void changeReservation(LocalDate date, LocalTime startTime, ReservationDto reservationDto) {
+        String resourceName = reservationDto.getResourceName();
+        Resource resource = resourceRepository.findByName(resourceName)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다. " + username));
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Reservation reservation = reservationRepository.findByUserAndStartTimeAndDate(user, startTime, date)
-            .orElseThrow(() -> new EntityNotFoundException("해당 예약을 찾을 수 없습니다. " + user + "_" + startTime));
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
 
         //작성자와 현재 사용자 일치 확인
         if (!user.equals(reservation.getUser())) {
@@ -100,20 +101,20 @@ public class ReservationService {
         }
 
         LocalDate newDate = reservationDto.getDate();
-        LocalDateTime newStartTime = reservationDto.getStartTime();
-        LocalDateTime newEndTime = reservationDto.getEndTime();
+        LocalTime newStartTime = reservationDto.getStartTime();
+        LocalTime newEndTime = reservationDto.getEndTime();
 
         //변경 사항이 없을 때는 예외 발생
         if (reservation.getDate().isEqual(newDate) && 
-            reservation.getStartTime().isEqual(newStartTime) &&
-            reservation.getEndTime().isEqual(newEndTime)) {
-                throw new IllegalArgumentException("변경 사항이 없습니다.");
+            reservation.getStartTime().equals(newStartTime) &&
+            reservation.getEndTime().equals(newEndTime)) {
+                throw new BusinessException(ErrorCode.NO_CHANGE_FOUND);
             }
 
-        boolean overlaps = reservationRepository.existsOverlap(resource, newStartTime, newEndTime);
+        boolean overlaps = reservationRepository.existsOverlap(resource, newStartTime, newEndTime, date);
 
         if(overlaps) {
-            throw new IllegalStateException("이미 예약된 시간입니다.");
+            throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
         
         reservation.setDate(newDate);
