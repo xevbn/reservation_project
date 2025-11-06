@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
+import jakarta.transaction.Transactional;
 
 public interface ReservationRepository extends CrudRepository<Reservation, Long>{
     public List<Reservation> findByDate(LocalDate date);
@@ -24,8 +26,11 @@ public interface ReservationRepository extends CrudRepository<Reservation, Long>
         "AND r.date = :newDate " +
         "AND r.startTime < :newEndTime " +
         "AND :newStartTime < r.endTime")
-boolean existsOverlap(@Param("resource") Resource resource,
+    public boolean existsOverlap(@Param("resource") Resource resource,
                     @Param("newStartTime") LocalTime newStartTime,
                     @Param("newEndTime") LocalTime newEndTime,
                     @Param("newDate") LocalDate newDate);
+    @Modifying
+    @Transactional
+    public void deleteByDateBefore(LocalDate date);
 }
