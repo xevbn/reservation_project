@@ -1,4 +1,9 @@
-package com.example.reservation;
+package com.example.reservation.user;
+
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import io.micrometer.common.lang.NonNull;
 import jakarta.persistence.Column;
@@ -32,5 +37,9 @@ public class User {
         this.username = username;
         this.password = password;
         this.email = email;
+    }
+
+    public List<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(userRole));
     }
 }

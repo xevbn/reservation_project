@@ -1,4 +1,4 @@
-package com.example.reservation;
+package com.example.reservation.user;
 
 import java.util.Optional;
 
@@ -6,6 +6,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.example.reservation.common.BusinessException;
+import com.example.reservation.common.ErrorCode;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -20,14 +23,18 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     //회원가입
-    public void registration(UserDto userDto) {
+    public User registration(UserDto userDto) {
         User new_user = new User(userDto.getUsername(), passwordEncoder.encode(userDto.getPassword()), userDto.getEmail());
         new_user.setUserRole("USER");
-        new_user.setProvider(null);
+        new_user.setProvider("local");
         new_user.setProviderId(null);
 
-        userRepository.save(new_user);
+        return userRepository.save(new_user);
     }
 
     //사용자 상세 정보 페이지
@@ -46,5 +53,25 @@ public class UserService {
     public void deleteUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         userRepository.deleteByUsername(username);
+    }
+
+    //사용자 정보 변경
+    public void editUser(UserDto userDto) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        
+        user.setEmail(userDto.getEmail());
+        user.setUsername(userDto.getUsername());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+    }
+
+    //전체 사용자 이메일 반환(이메일 중복 확인용)
+    public boolean checkEmailDuplication(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    public Iterable<User> listAllUsers() {
+        return userRepository.findAll();
     }
 }

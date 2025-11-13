@@ -1,12 +1,19 @@
-package com.example.reservation;
+package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.example.reservation.common.BusinessException;
+import com.example.reservation.common.ErrorCode;
+import com.example.reservation.resource.Resource;
+import com.example.reservation.resource.ResourceRepository;
+import com.example.reservation.user.User;
+import com.example.reservation.user.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -29,8 +36,8 @@ public class ReservationService {
         LocalTime start = reservationDto.getStartTime();
         LocalTime end = reservationDto.getEndTime();
 
+        //중복된 예약이 있을 시
         boolean overlaps = reservationRepository.existsOverlap(resource, start, end, date);
-            
         if(overlaps) {
             throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
@@ -65,25 +72,24 @@ public class ReservationService {
     }
 
     //예약 취소
-    public void cancelReservation(LocalDate date, LocalTime startTime) {
+    public void cancelReservation(Long id) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Reservation reservation = reservationRepository.findByUserAndStartTimeAndDate(user, startTime, date)
+        Reservation reservation = reservationRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         
         //작성자와 현재 사용자 일치 확인
-        //이 코드 의미 없는데
         if (!user.equals(reservation.getUser())) {
-            throw new AccessDeniedException("사용자가 아닙니다.");
+            throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
-        reservationRepository.deleteByUserAndStartTimeAndDate(user, startTime, date);
+        reservationRepository.deleteById(id);
     }
 
     //예약 변경
-    public void changeReservation(LocalDate date, LocalTime startTime, ReservationDto reservationDto) {
+    public void changeReservation(Long id, ReservationDto reservationDto) {
         String resourceName = reservationDto.getResourceName();
         Resource resource = resourceRepository.findByName(resourceName)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
@@ -92,12 +98,12 @@ public class ReservationService {
         User user = userService.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Reservation reservation = reservationRepository.findByUserAndStartTimeAndDate(user, startTime, date)
+        Reservation reservation = reservationRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
 
         //작성자와 현재 사용자 일치 확인
         if (!user.equals(reservation.getUser())) {
-            throw new AccessDeniedException("사용자가 아닙니다.");
+            throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
         LocalDate newDate = reservationDto.getDate();
@@ -111,7 +117,7 @@ public class ReservationService {
                 throw new BusinessException(ErrorCode.NO_CHANGE_FOUND);
             }
 
-        boolean overlaps = reservationRepository.existsOverlap(resource, newStartTime, newEndTime, date);
+        boolean overlaps = reservationRepository.existsOverlap(resource, newStartTime, newEndTime, newDate);
 
         if(overlaps) {
             throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
@@ -122,11 +128,28 @@ public class ReservationService {
         reservation.setEndTime(newEndTime);
     }
 
+    //전체 예약 리스트 반환
     public Iterable<Reservation> findAll() {
         return reservationRepository.findAll();
     }
 
+    //전체 예약 삭제
     public void deleteAll() {
         reservationRepository.deleteAll();
+    }
+
+    //일자 및 리소스 id를 통해 예약 리스트 반환
+    //이거 도대체 왜 있음????? 반환 없는데???
+    public void getReservationsByDateAndResourceId(LocalDate date, Long resourceId) {
+        Resource resource = resourceRepository.findById(resourceId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+        List<Reservation> reservations = reservationRepository.findByDateAndResource(date, resource);
+
+        
+    }
+
+    //id를 통해 해당 예약에 접근
+    public Optional<Reservation> getReservationById(Long id) {
+        return reservationRepository.findById(id);
     }
 }

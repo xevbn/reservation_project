@@ -10,7 +10,8 @@ import io.jsonwebtoken.security.Keys;
 
 @Configuration
 public class JwtConfig {
-    private final static Long expireTime = 60 *60 * 1000L;
+    private final static Long expireTime = 60 * 60 * 1000L;
+    private final static Long refreshExpire = 60 * 60 * 24 * 7 * 1000L;
     
     @Bean
     public SecretKey jwtSigningKey() {
@@ -19,5 +20,9 @@ public class JwtConfig {
 
     public Long getExpiry() {
         return expireTime;
+    }
+
+    public Long getRefreshExpiry() {
+        return refreshExpire;
     }
 }

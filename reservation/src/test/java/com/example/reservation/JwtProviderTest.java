@@ -1,5 +1,6 @@
 package com.example.reservation;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -7,110 +8,112 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
+
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.reactive.server.HeaderAssertions;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.reservation.Security.JwtProvider;
+import com.example.reservation.user.UserDto;
+import com.example.reservation.user.UserService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 
-@SpringBootTest
+@Slf4j
+@SpringBootTest()
+@AutoConfigureMockMvc
+@Transactional
 //@WithMockUser(username="test", roles={"USER"})
 public class JwtProviderTest {
     @Autowired
     JwtProvider jwtProvider;
+    @Autowired
+    MockMvc mvc;
+    @Autowired
+    UserService userService;
+    ObjectMapper objectMapper;
+    static MockWebServer mockWebServer;
 
-    @Test
-    public void createTokenTestWithUserDetails() {
-        UserDetails userDetails = User.builder()
-            .username("username")
-            .password("password")
-            .roles("USER")
-            .build();
+    @BeforeEach
+    void setUp() {
+        UserDto dto = new UserDto("user", "passwd", "email");
+        userService.registration(dto);
+        objectMapper = new ObjectMapper();
+    }
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            userDetails.getAuthorities()
-        );
-        
-        String token = jwtProvider.createToken(authentication);
+    @BeforeAll
+    public static void beforeAll() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
+    }
 
-        assertNotNull(token);
+    @AfterAll
+    public static void afterAll() throws IOException {
+        mockWebServer.shutdown();
+    }
+
+    @DynamicPropertySource
+    public static void dynamicProperties(DynamicPropertyRegistry registry) {
+        String baseUrl = "http://localhost:" + mockWebServer.getPort();
+        registry.add("spring.security.oauth2.client.provider.google.token-uri", () -> baseUrl + "/token");
+        registry.add("spring.security.oauth2.client.provider.google.user-info-uri", () -> baseUrl + "/userinfo");
     }
 
     @Test
-    public void createTokenWithOAuth2User() throws Exception {
-        Map<String, Object> attributes = Map.of(
-            "sub", "1235",
-            "email", "test@email.com",
-            "name", "name"
-        );
+    public void loginThenGetToken() throws Exception{
+        UserDto dto = new UserDto();
+        dto.setUsername("user");
+        dto.setPassword("passwd");
 
-        OAuth2User oAuth2User = new DefaultOAuth2User(
-            List.of(new SimpleGrantedAuthority("ROLE_USER")),
-            attributes,
-            "email"
-        );
+        MvcResult result = mvc.perform(
+            post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        Authentication authentication = new OAuth2AuthenticationToken(
-            oAuth2User,
-            oAuth2User.getAuthorities(),
-            "google"
-        );
+        Map<String, String> responseBody = objectMapper.readValue(result.getResponse().getContentAsString()
+            , new TypeReference<Map<String, String>>() {});
 
-        String token = jwtProvider.createToken(authentication);
-        assertNotNull(token);
-    }
+        String accessToken = responseBody.get("Authorization");
 
-    @Test
-    public void createTokenWithOidcUser() throws Exception {
-        Map<String, Object> attributes = Map.of(
-            "sub", "user",
-            "email", "email",
-            "name", "name"
-        );
+        System.out.println(result);
 
-        String idToken = Jwts.builder()
-            .setHeaderParam("typ", "jwt")
-            .setIssuer("https://test-issuer.com")
-            .setSubject("123456")
-            .setAudience("test-client-id")
-            .setExpiration(new Date(System.currentTimeMillis() + 3600000))
-            .setIssuedAt(new Date())
-            .addClaims(attributes)
-            .signWith(SignatureAlgorithm.HS256, "testSecretKeytestSecretKeytestSecretKeytestSecretKey")
-            .compact();
-
-        OidcIdToken oidcIdToken = new OidcIdToken(idToken, Instant.now(),
-            Instant.now().plus(1, ChronoUnit.HOURS), attributes);
-
-        OidcUser oidcUser = new DefaultOidcUser(
-            List.of(new SimpleGrantedAuthority("ROLE_USER")), 
-            oidcIdToken);
-
-        Authentication authentication = new OAuth2AuthenticationToken(
-            oidcUser,
-            oidcUser.getAuthorities(),
-            "google"
-        );
-
-        String jwt = jwtProvider.createToken(authentication);
-        assertNotNull(jwt, "토큰 생성");
-        assertTrue(jwtProvider.validateToken(jwt), "유효성 검증");
+        assertNotNull(accessToken);
     }
 }

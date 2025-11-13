@@ -1,7 +1,10 @@
-package com.example.reservation;
+package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.example.reservation.resource.Resource;
+import com.example.reservation.user.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

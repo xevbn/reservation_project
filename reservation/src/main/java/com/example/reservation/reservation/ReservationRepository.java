@@ -1,4 +1,4 @@
-package com.example.reservation;
+package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -10,6 +10,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+
+import com.example.reservation.resource.Resource;
+import com.example.reservation.user.User;
 
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
@@ -33,4 +36,5 @@ public interface ReservationRepository extends CrudRepository<Reservation, Long>
     @Modifying
     @Transactional
     public void deleteByDateBefore(LocalDate date);
+    public List<Reservation> findByDateAndResource(LocalDate date, Resource resource);
 }

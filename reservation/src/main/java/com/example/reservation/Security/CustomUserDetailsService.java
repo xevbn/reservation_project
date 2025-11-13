@@ -5,8 +5,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.User;
-import com.example.reservation.UserRepository;
+import com.example.reservation.common.BusinessException;
+import com.example.reservation.common.ErrorCode;
+import com.example.reservation.user.User;
+import com.example.reservation.user.UserRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -18,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("사용자가 없습니다. " + username));
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return org.springframework.security.core.userdetails.User
             .withUsername(user.getUsername())
@@ -31,13 +33,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByProviderAndProviderID(String provider, String providerId) 
         throws UsernameNotFoundException {
             User user = userRepository.findByProviderAndProviderId(provider, providerId)
-                .orElseThrow(() -> 
-                    new UsernameNotFoundException("사용자가 없습니다. " + provider + "_" + providerId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
             
-            return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .roles(user.getUserRole())
-                .build();
+            return new CustomUserDetails(user);
+    }
+
+    public UserDetails loadUserById(Long id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        return new CustomUserDetails(user);
     }
 }

@@ -3,6 +3,7 @@ package com.example.reservation;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.reservation.reservation.ReservationDto;
+import com.example.reservation.reservation.ReservationResponse;
+import com.example.reservation.reservation.ReservationService;
+import com.example.reservation.resource.Resource;
+import com.example.reservation.resource.ResourceRepository;
+import com.example.reservation.user.User;
+import com.example.reservation.user.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -45,6 +53,8 @@ public class ReservationControllerTest {
     MockMvc mvc;
     public static ObjectMapper objectMapper = new ObjectMapper();
 
+    Long id;
+
     public void makeAuth(int num) {
         User testUser = new User();
         testUser.setUsername("username" + num);
@@ -53,7 +63,6 @@ public class ReservationControllerTest {
         testUser.setUserRole("USER");
 
         userRepository.save(testUser);
-        userRepository.findByUsername("username" + num);
 
         Authentication auth = new UsernamePasswordAuthenticationToken(
             testUser.getUsername(), testUser.getPassword(),
@@ -80,7 +89,8 @@ public class ReservationControllerTest {
             resourceName
             
         );
-        reservationService.makeReservation(dto);
+
+        id = reservationService.makeReservation(dto).getId();
 
         ReservationDto dto2 = new ReservationDto(
             date,
@@ -97,6 +107,7 @@ public class ReservationControllerTest {
         MvcResult result = mvc.perform(
             get("/" + date.getMonthValue() + "." + date.getDayOfMonth()))
             .andExpect(status().isOk())
+            .andDo(print())
             .andReturn();
         
         List<ReservationResponse> response = objectMapper.readValue(
@@ -158,11 +169,16 @@ public class ReservationControllerTest {
 
         String requestBody = objectMapper.writeValueAsString(dto);
 
-        mvc.perform(post("/" + date.getMonthValue() + "." + date.getDayOfMonth())
+        MvcResult rs = mvc.perform(post("/" + date.getMonthValue() + "." + date.getDayOfMonth())
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
             .andDo(print())
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andReturn();
+
+        String bodyString = rs.getResponse().getContentAsString();
+        Map<String, String> response = objectMapper.readValue(bodyString, new TypeReference<Map<String, String>>() {});
+        Long thisId = Long.valueOf(response.get("id"));
 
         ReservationDto change = new ReservationDto(
             date.plusDays(2),
@@ -173,7 +189,7 @@ public class ReservationControllerTest {
 
         String editRequest = objectMapper.writeValueAsString(change);
 
-        mvc.perform(put("/" + date.getMonthValue() + "." + date.getDayOfMonth() + "/" + start)
+        mvc.perform(put("/" + thisId + "/detail")
             .contentType(MediaType.APPLICATION_JSON)
             .content(editRequest))
             .andExpect(status().is2xxSuccessful());
@@ -181,7 +197,7 @@ public class ReservationControllerTest {
 
     @Test
     public void deleteNonExistingReservation() throws Exception {
-        mvc.perform(delete("/9.1/20:00:00"))
+        mvc.perform(delete("/20/detail"))
             .andExpect(status().isNotFound());
     }
 
@@ -198,14 +214,19 @@ public class ReservationControllerTest {
 
         String requestBody = objectMapper.writeValueAsString(dto);
 
-        mvc.perform(post("/" + date.getMonthValue() + "." + date.getDayOfMonth())
+        MvcResult rs = mvc.perform(post("/" + date.getMonthValue() + "." + date.getDayOfMonth())
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
             .andDo(print())
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andReturn();
 
-        mvc.perform(delete("/" + date.getMonthValue() + "." + date.getDayOfMonth() + "/" + start))
-            .andExpect(status().isOk());
+        String bodyString = rs.getResponse().getContentAsString();
+        Map<String, String> responseBody = objectMapper.readValue(bodyString, new TypeReference<Map<String, String>>() {});
+        Long savedId = Long.valueOf(responseBody.get("id"));
+
+        mvc.perform(delete("/" + savedId + "/detail"))
+            .andExpect(status().isNoContent());
 
         MvcResult result = mvc.perform(get("/" + date.getMonthValue() + "." + date.getDayOfMonth()))
             .andExpect(status().isOk())
@@ -266,9 +287,24 @@ public class ReservationControllerTest {
         );
         String request = objectMapper.writeValueAsString(change);
 
-        mvc.perform(put("/" + dateString + "/" + start)
+        mvc.perform(put("/" + id + "/detail")
             .contentType(MediaType.APPLICATION_JSON)
             .content(request))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void getReservationDetail() throws Exception {
+        System.out.println(id);
+        if(id == null) throw new NullPointerException("id is null");
+
+        makeAuth(10);
+
+        MvcResult rs = mvc.perform(get("/" + id.toString() + "/detail"))
+            .andExpect(status().isOk())
+            .andDo(print())
+            .andReturn();
+
+        String body = rs.getResponse().getContentAsString();
     }
 }

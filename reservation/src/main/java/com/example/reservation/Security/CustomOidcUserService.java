@@ -5,8 +5,8 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.User;
-import com.example.reservation.UserRepository;
+import com.example.reservation.user.User;
+import com.example.reservation.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 

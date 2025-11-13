@@ -1,4 +1,4 @@
-package com.example.reservation;
+package com.example.reservation.resource;
 
 import java.util.Optional;
 

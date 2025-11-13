@@ -1,4 +1,4 @@
-package com.example.reservation;
+package com.example.reservation.user;
 
 import java.util.Optional;
 
@@ -9,4 +9,5 @@ public interface  UserRepository extends CrudRepository<User, Long> {
     //oauth 추가 시 사용
     public Optional<User> findByProviderAndProviderId(String provider, String providerId);
     public void deleteByUsername(String username);
+    public boolean existsByEmail(String email);
 }

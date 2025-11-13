@@ -7,13 +7,17 @@ import javax.crypto.SecretKey;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -32,29 +36,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws IOException, ServletException {
             String token = null;
 
-            //jwt가 쿠키에 포함되어 있는지 헤더에 포함되어 있는지 확인하여 String 형태로 추출
-            if ( request.getCookies() != null ) {
-                for (Cookie cookie : request.getCookies()) {
-                    if ("jwtToken".equals(cookie.getName())) {
-                        token = cookie.getValue();
-                        break;
-                    }
-                }
-            } else {
-                String authHeader = request.getHeader("Authorization");
-                if ( authHeader != null && authHeader.startsWith("Bearer ")) {
-                    token = authHeader.substring(7);
-                }
-            }
-
-            //jwt가 없으면 필터를 넘김
-            if (token == null) {
-                filterChain.doFilter(request, response);
-                return;
+            String authHeader = request.getHeader("Authorization");
+            if ( authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
             }
 
             //우선 토큰의 유효성 검증
-            if (jwtProvider.validateToken(token)) {
+            if (token != null && jwtProvider.validateToken(token)) {
                 //jwt에서 필요한 정보를 추출
                 try {
                     Claims claims = Jwts.parserBuilder()
@@ -63,15 +51,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         .parseClaimsJws(token)
                         .getBody();
                 
-                    String[] parts = claims.getSubject().split("_");
-                    UserDetails userDetails;
-
-                    //일반 로그인 시와 oauth2를 통한 로그인에 대한 분기점
-                    if (parts.length > 1) {
-                        userDetails = customUserDetailsService.loadUserByProviderAndProviderID(parts[0], parts[1]);
-                    } else {
-                        userDetails = customUserDetailsService.loadUserByUsername(parts[0]);
-                    }
+                    UserDetails userDetails = customUserDetailsService.loadUserById(Long.valueOf(claims.getSubject()));
 
                     //해당 유저 정보가 확인된다면
                     if (userDetails != null) {
@@ -80,9 +60,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
 
-                } catch (Exception e) {
+                } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException | IllegalArgumentException | UsernameNotFoundException e) {
                     SecurityContextHolder.clearContext();
+                    System.out.println(e.getMessage());
                 }
             }
+
+            filterChain.doFilter(request, response);
         }
 }
