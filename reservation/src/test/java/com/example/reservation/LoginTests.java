@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -104,8 +105,14 @@ public class LoginTests {
 
     @Test
     public void deleteUser() throws Exception {
-        mvc.perform(delete("/user_detail/delete"))
-            .andExpect(redirectedUrl("/login"));
+        MvcResult rs = mvc.perform(delete("/user_detail/delete"))
+            .andExpect(status().isNoContent())
+            .andReturn();
+
+        Map<String, String> body = objectMapper.readValue(rs.getResponse().getContentAsString(), 
+            new TypeReference<Map<String, String>>() {});
+        
+        assertEquals(body.get("redirectUrl"), "/login");
     }
 
     @Test

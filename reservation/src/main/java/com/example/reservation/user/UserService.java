@@ -74,4 +74,13 @@ public class UserService {
     public Iterable<User> listAllUsers() {
         return userRepository.findAll();
     }
+
+    public User registrationForAdmin(UserDto userDto) {
+        User new_user = new User(userDto.getUsername(), passwordEncoder.encode(userDto.getPassword()), userDto.getEmail());
+        new_user.setUserRole("ADMIN");
+        new_user.setProvider("local");
+        new_user.setProviderId(null);
+
+        return userRepository.save(new_user);
+    }
 }

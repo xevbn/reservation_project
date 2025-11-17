@@ -32,7 +32,7 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
         userService.registration(userDto);
         
-        return ResponseEntity.ok("redirect:/login");
+        return ResponseEntity.ok(Map.of("message", "회원가입 성공", "redirectUrl", "/login"));
     }
     
     //사용자 상세 정보
@@ -49,7 +49,8 @@ public class UserController {
     public ResponseEntity<?> deleteUser() {
         userService.deleteUser();
 
-        return ResponseEntity.ok("redirect:/login");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+            .body(Map.of("message", "회원탈퇴 성공", "redirectUrl", "/login"));
     }
 
     //사용자 정보 변경
@@ -57,7 +58,8 @@ public class UserController {
     public ResponseEntity<?> userDetailEdit(@RequestBody UserDto userDto) {
         userService.editUser(userDto);
 
-        return ResponseEntity.ok("redirect:/login");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+            .body(Map.of("message", "변경 성공", "redirectUrl", "/login"));
     }
 
     //이메일 중복 확인
@@ -66,9 +68,11 @@ public class UserController {
         String email = request.get("email");
         
         if(userService.checkEmailDuplication(email) ) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", "해당 이메일은 사용 중입니다."));
+            
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("message", "해당 이메일은 사용 중입니다.", "available", false));
         } else {
-            return ResponseEntity.ok(Map.of("message", "사용 가능한 이메일입니다."));
+            return ResponseEntity.ok(Map.of("message", "사용 가능한 이메일입니다.", "available", true));
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -151,5 +152,22 @@ public class ReservationService {
     //id를 통해 해당 예약에 접근
     public Optional<Reservation> getReservationById(Long id) {
         return reservationRepository.findById(id);
+    }
+
+    public List<Boolean> getReservedList(LocalDate date) {
+        List<Reservation> reserved = reservationRepository.findByDate(date);
+
+        List<LocalTime> reservedTime = reserved.stream()
+            .map(Reservation::getStartTime)
+            .toList();
+        
+        List<Boolean> timeList = new ArrayList<>();
+        for(int hour = 9; hour <= 18; hour++) {
+            LocalTime slot = LocalTime.of(hour, 0);
+            boolean isReserved = reservedTime.contains(slot);
+            timeList.add(isReserved);
+        }
+
+        return timeList;
     }
 }

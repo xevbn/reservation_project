@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import com.example.reservation.common.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
+
 
 
 
@@ -95,4 +97,15 @@ public class ReservationController {
         
         return ResponseEntity.ok(resBody);
     }
+
+    @GetMapping("/{date}/reservedList")
+    public ResponseEntity<?> getMethodName(@PathVariable String date) {
+        LocalDate selectedDate = LocalDate.parse(date, formatter);
+        List<Boolean> reservedList = reservationService.getReservedList(selectedDate);
+
+        Map<String, List<Boolean>> reservedMap = Map.of("reservedList", reservedList);
+
+        return ResponseEntity.ok(reservedMap);
+    }
+    
 }

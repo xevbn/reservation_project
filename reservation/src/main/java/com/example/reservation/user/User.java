@@ -39,6 +39,13 @@ public class User {
         this.email = email;
     }
 
+    public User(String username, String password, String email, String role) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.userRole = role;
+    }
+
     public List<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(userRole));
     }

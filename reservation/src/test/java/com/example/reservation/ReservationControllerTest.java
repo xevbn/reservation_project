@@ -307,4 +307,18 @@ public class ReservationControllerTest {
 
         String body = rs.getResponse().getContentAsString();
     }
+
+    @Test
+    public void getReservedList() throws Exception {
+        LocalDate date = LocalDate.now();
+        MvcResult rs = mvc.perform(get("/" + date.getMonthValue() + "." + date.getDayOfMonth() + "/reservedList"))
+            .andDo(print())
+            .andReturn();
+
+        String bodyString = rs.getResponse().getContentAsString();
+        Map<String, Object> responseMap = objectMapper.readValue(bodyString, new TypeReference<Map<String, Object>>(){});
+        List<Boolean> reservedList = (List<Boolean>) responseMap.get("reservedList");
+
+        System.out.print(reservedList);
+    }
 }

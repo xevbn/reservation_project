@@ -153,7 +153,8 @@ HTTP/1.1 204 No Content
 #### response (200 ok)
 ```json 
 {
-    "message": "사용 가능한 이메일입니다."
+    "message": "사용 가능한 이메일입니다.",
+    "available": true
 }
 ```
 
@@ -261,7 +262,94 @@ HTTP/1.1 204 No Content
 
 ---
 
-## 4. 공통 에러 형식
+## 4. 예약 개체 
+
+### 4.1 예약 개체 리스트
+
+| 항목 | 내용 |
+|------|-----|
+|Method|`GET`|
+|URL|`/resource/list`|
+|설명|모든 예약 개체 리스트 반환|
+|인증|불필요|
+
+#### response (200 OK)
+```json
+{
+    "resourceList" : {
+       {
+           "id": 1,
+           "name": "resourceName",
+           "docname": "name"
+       }
+    }
+}
+```
+
+### 4.2 예약 개체 추가
+
+| 항목 | 내용 |
+|------|-----|
+|Method|`POST`|
+|URL|`/resource/add`|
+|설명|예약 개체 추가|
+|인증|필요(admin)|
+
+#### request
+```json
+{
+    "name": "newResource",
+    "docname": "newName"
+}
+```
+
+#### response (204 NO CONTENT)
+```json
+{
+    "resourceList" : {
+       {
+           "id": 2,
+           "name": "newResource",
+           "docname": "newName"
+       }
+    }
+}
+```
+
+### 4.3 예약 개체 삭제
+
+| 항목 | 내용 |
+|------|-----|
+|Method|`POST`|
+|URL|`/resource/{id}/delete`|
+|설명|예약 개체 삭제|
+|인증|필요(admin)|
+
+#### response (204 NO CONTENT)
+
+### 4.4 예약 개체 수정
+
+| 항목 | 내용 |
+|------|-----|
+|Method|`PUT`|
+|URL|`/resource/{id}/edit`|
+|설명|예약 개체 수정|
+|인증|필요(admin)|
+
+#### request
+```json
+{
+    "name": "editResource",
+    "docname": "editName"
+}
+```
+
+#### response (204 NO CONTENT)
+
+---
+
+
+## 5. 공통 에러 형식
 
 ```json
 {
