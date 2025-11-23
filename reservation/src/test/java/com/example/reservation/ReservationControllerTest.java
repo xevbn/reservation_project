@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.reservation.reservation.ReservationDto;
@@ -309,16 +310,15 @@ public class ReservationControllerTest {
     }
 
     @Test
-    public void getReservedList() throws Exception {
+    public void subscribeAvailability_returnsEventStream() throws Exception {
         LocalDate date = LocalDate.now();
-        MvcResult rs = mvc.perform(get("/" + date.getMonthValue() + "." + date.getDayOfMonth() + "/reservedList"))
-            .andDo(print())
-            .andReturn();
+        String body = objectMapper.writeValueAsString(Map.of("date", date.toString()));
 
-        String bodyString = rs.getResponse().getContentAsString();
-        Map<String, Object> responseMap = objectMapper.readValue(bodyString, new TypeReference<Map<String, Object>>(){});
-        List<Boolean> reservedList = (List<Boolean>) responseMap.get("reservedList");
-
-        System.out.print(reservedList);
+        mvc.perform(get("/" + id.toString() + "/sse")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM))
+            .andDo(print());
     }
 }

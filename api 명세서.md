@@ -262,6 +262,42 @@ HTTP/1.1 204 No Content
 
 ---
 
+### 3.5 점유 시간 확인 sse
+
+| 항목 | 내용 |
+|------|-----|
+|Method|`GET`|
+|URL|`/reservation/{resourceId}/sse`|
+|설명|해당 날짜의 점유 시간 확인하기 위한 sse|
+|인증|불필요|
+
+#### request body
+```json
+{
+    "date": 2025-11-01
+}
+```
+
+#### response
+```
+Content type = text/event-stream
+Body = event:timeslots
+    data:
+    {
+        "09:00-10:00": false,
+        "10:00-11:00": false,
+        "11:00-12:00": false,
+        "12:00-13:00": false,
+        "13:00-14:00": false,
+        "14:00-15:00": false,
+        "15:00-16:00": false,
+        "16:00-17:00": false,
+        "17:00-18:00": false,
+    }
+```
+
+---
+
 ## 4. 예약 개체 
 
 ### 4.1 예약 개체 리스트

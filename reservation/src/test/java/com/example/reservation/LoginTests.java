@@ -139,9 +139,9 @@ public class LoginTests {
 
         MvcResult rs = mvc.perform(get("/check_email")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(Map.of("email", "email"))))
+            .content(objectMapper.writeValueAsString(Map.of("email", "asdf"))))
             .andDo(print())
-            .andExpect(status().isConflict())
+            .andExpect(status().isOk())
             .andReturn();
     }
 }

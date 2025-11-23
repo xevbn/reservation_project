@@ -2,9 +2,10 @@ package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final UserService userService;
     private final ResourceRepository resourceRepository;
+    private final SseService sseService;
 
     //예약 작성
     public Reservation makeReservation(ReservationDto reservationDto) {
@@ -55,7 +57,12 @@ public class ReservationService {
         newReservation.setUser(user);
         newReservation.setResource(resource);
 
-        return reservationRepository.save(newReservation);
+        Reservation reserved = reservationRepository.save(newReservation);
+
+        Map<String, Boolean> occupied = getReservedList(date, resource.getId());
+        sseService.sendUpdate(date, resource.getId(), occupied);
+
+        return reserved;
     }
 
     //일별 예약
@@ -154,18 +161,24 @@ public class ReservationService {
         return reservationRepository.findById(id);
     }
 
-    public List<Boolean> getReservedList(LocalDate date) {
-        List<Reservation> reserved = reservationRepository.findByDate(date);
+    //해당 시간대가 점유 중임을 확인하기 위한 시간대-부울 반환
+    public Map<String, Boolean> getReservedList(LocalDate date, Long resourceId) {
+        Resource resource = resourceRepository.findById(resourceId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        List<LocalTime> reservedTime = reserved.stream()
-            .map(Reservation::getStartTime)
-            .toList();
+        List<Reservation> reserved = reservationRepository.findByDateAndResource(date, resource);
+
+        List<LocalTime> reservedTime;
+        reservedTime = reserved.stream()
+                .map(Reservation::getStartTime)
+                .toList();
         
-        List<Boolean> timeList = new ArrayList<>();
-        for(int hour = 9; hour <= 18; hour++) {
+        Map<String, Boolean> timeList = new TreeMap<>();
+        for(int hour = 9; hour < 18; hour++) {
             LocalTime slot = LocalTime.of(hour, 0);
             boolean isReserved = reservedTime.contains(slot);
-            timeList.add(isReserved);
+            timeList.put(LocalTime.of(hour, 0).toString() + "-" + LocalTime.of(hour + 1, 0),
+                isReserved);
         }
 
         return timeList;

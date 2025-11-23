@@ -1,14 +1,11 @@
 package com.example.reservation.Security;
 
-import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +44,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         //oauth2 사용자를 찾아보고 없으면 추가(회원가입)
-        userRepository.findByProviderAndProviderId(provider, providerId)
+        User user = userRepository.findByProviderAndProviderId(provider, providerId)
             .orElseGet(() -> {
                 User newUser = new User();
                 newUser.setProvider(provider);
@@ -59,8 +56,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 return userRepository.save(newUser);
             });
 
-        return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("USER")), 
-            oAuth2User.getAttributes(), provider + "_" + providerId);
+        return new CustomPrincipal(user, oAuth2User.getAttributes(), null, null);
     }
     
 }

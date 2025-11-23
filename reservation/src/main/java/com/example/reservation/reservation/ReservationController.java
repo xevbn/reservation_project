@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
@@ -29,6 +33,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
+    private final SseService sseService;
     private final static DateTimeFormatter formatter = new DateTimeFormatterBuilder()
         .appendPattern("M.d")
         .parseDefaulting(java.time.temporal.ChronoField.YEAR, LocalDate.now().getYear())
@@ -37,7 +42,7 @@ public class ReservationController {
 
     //애초에 url을 어떻게 설정한건지도 문제인데
     //응답 어떻게 할건지 생각해두기 응답에 넣기? form 써서 넘기기?
-    @GetMapping("/{date}")
+    @GetMapping("/{date}")  //이거 바꿔야하는거 아닌가 몰라
     public ResponseEntity<?> getSelectedDatReservation(@PathVariable String date) {
         LocalDate selectedDate = LocalDate.parse(date, formatter);
 
@@ -98,14 +103,20 @@ public class ReservationController {
         return ResponseEntity.ok(resBody);
     }
 
-    @GetMapping("/{date}/reservedList")
-    public ResponseEntity<?> getMethodName(@PathVariable String date) {
-        LocalDate selectedDate = LocalDate.parse(date, formatter);
-        List<Boolean> reservedList = reservationService.getReservedList(selectedDate);
+    //해당 일자 및 리소스에 대한 시간대 점유 여부 sse 구독 엔드포인트
+    @GetMapping(value="/{resourceId}/sse", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(@PathVariable Long resourceId, @RequestBody String body) throws JsonProcessingException {
+        Map<String, String> bodyMap = objMapper.readValue(body, new TypeReference<Map<String, String>>() {});
+        String date = bodyMap.get("date");
 
-        Map<String, List<Boolean>> reservedMap = Map.of("reservedList", reservedList);
+        LocalDate selectedDate = LocalDate.parse(date);
+        SseEmitter sseEmitter = sseService.subscribe(selectedDate, resourceId);
 
-        return ResponseEntity.ok(reservedMap);
+        //구독 시 바로 해당 시점의 점유 리스트 반환
+        Map<String, Boolean> occupied = reservationService.getReservedList(selectedDate, resourceId);
+        sseService.sendUpdate(selectedDate, resourceId, occupied);
+
+        return sseEmitter;
     }
     
 }

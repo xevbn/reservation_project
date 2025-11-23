@@ -17,16 +17,16 @@ public class CustomOidcUserService extends OidcUserService {
 
     @Override
     public OidcUser loadUser(OidcUserRequest oidcUserRequest) {
-        OidcUser user = super.loadUser(oidcUserRequest);
+        OidcUser oidcUser = super.loadUser(oidcUserRequest);
 
         //oidc 필요한 정보 추출
         String provider = oidcUserRequest.getClientRegistration().getClientId();
-        String providerId = user.getSubject();
-        String email = user.getEmail();
-        String name = user.getName();
+        String providerId = oidcUser.getSubject();
+        String email = oidcUser.getEmail();
+        String name = oidcUser.getName();
 
         //provider 및 providerId로 해당 유저 정보를 찾음
-        userRepository.findByProviderAndProviderId(provider, providerId)
+        User user = userRepository.findByProviderAndProviderId(provider, providerId)
             .orElseGet(() -> {
                 User newUser = new User();
                 newUser.setProvider(provider);
@@ -39,6 +39,6 @@ public class CustomOidcUserService extends OidcUserService {
                 return userRepository.save(newUser);
             });
 
-        return user;
+        return new CustomPrincipal(user, oidcUser.getAttributes(), oidcUser.getIdToken(), oidcUser.getUserInfo());
     }
 }

@@ -1,5 +1,7 @@
 package com.example.reservation.Security;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +21,7 @@ public class RefreshToken {
     private Long userId;
     private String username;
     private String refreshToken;
+    private LocalDateTime expiresAt;
 
     public RefreshToken(Long userId, String username, String token) {
         this.userId = userId;

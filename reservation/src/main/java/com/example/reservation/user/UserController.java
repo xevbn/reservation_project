@@ -63,16 +63,20 @@ public class UserController {
     }
 
     //이메일 중복 확인
-    @GetMapping("/check_email")
+    @PostMapping("/check_email")
     public ResponseEntity<?> checkEmailDuplication(@RequestBody Map<String, String> request) throws Exception {
         String email = request.get("email");
+        boolean exists = userService.checkEmailDuplication(email);
+
+        System.out.println(email + " 중복 여부 : " + exists);
         
-        if(userService.checkEmailDuplication(email) ) {
-            
+        if(exists) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", "해당 이메일은 사용 중입니다.", "available", false));
+                .body(Map.of("message", "해당 이메일은 사용 중입니다.", 
+                    "available", false));
         } else {
-            return ResponseEntity.ok(Map.of("message", "사용 가능한 이메일입니다.", "available", true));
+            return ResponseEntity.ok(Map.of("message", "사용 가능한 이메일입니다.", 
+                "available", true));
         }
     }
 }

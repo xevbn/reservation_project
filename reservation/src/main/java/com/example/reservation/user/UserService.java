@@ -66,7 +66,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
     }
 
-    //전체 사용자 이메일 반환(이메일 중복 확인용)
+    //이메일 존재 여부 확인(이메일 중복 확인용)
     public boolean checkEmailDuplication(String email) {
         return userRepository.existsByEmail(email);
     }
