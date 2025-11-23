@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.example.reservation.jwt.JwtProvider;
+import com.example.reservation.jwt.RefreshTokenService;
 import com.example.reservation.user.User;
 
 import jakarta.servlet.ServletException;
@@ -19,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 //stateless 구성으로 oauth2 로그인에 대한 jwt 발급을 위해 작성
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtProvider jwtProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
     //oauth2 로그인 성공 시 jwt 토큰 발급
     @Override
@@ -30,15 +32,11 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             User user = oAuth2User.getUser();
 
             String accessToken = jwtProvider.createToken(user);
-            String refreshToken = jwtProvider.generateRefreshToken(user);
-
-            refreshTokenRepository.save(
-                new RefreshToken(oAuth2User.getUserId(), oAuth2User.getName(), refreshToken)
-            );
+            String refreshToken = refreshTokenService.generateRefreshToken(user);
 
             res.setHeader("Authorization", "Bearer " + accessToken);
 
-            Cookie cookie = new Cookie("refresh_token", accessToken);
+            Cookie cookie = new Cookie("refresh_token", refreshToken);
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/");

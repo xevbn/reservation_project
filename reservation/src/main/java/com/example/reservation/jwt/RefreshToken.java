@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.jwt;
 
 import java.time.LocalDateTime;
 
@@ -23,9 +23,10 @@ public class RefreshToken {
     private String refreshToken;
     private LocalDateTime expiresAt;
 
-    public RefreshToken(Long userId, String username, String token) {
+    public RefreshToken(Long userId, String username, String token, LocalDateTime expiresAt) {
         this.userId = userId;
         this.username = username;
         this.refreshToken = token;
+        this.expiresAt = expiresAt;
     }
 }

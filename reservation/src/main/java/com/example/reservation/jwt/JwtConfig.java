@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.jwt;
 
 import javax.crypto.SecretKey;
 

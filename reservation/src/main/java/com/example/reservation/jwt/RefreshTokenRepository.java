@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.jwt;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

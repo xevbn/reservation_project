@@ -16,9 +16,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 
 import com.example.reservation.Security.CustomOAuth2User;
-import com.example.reservation.Security.JwtProvider;
 import com.example.reservation.Security.OAuth2LoginSuccessHandler;
-import com.example.reservation.Security.RefreshTokenRepository;
+import com.example.reservation.jwt.JwtProvider;
+import com.example.reservation.jwt.RefreshTokenRepository;
 import com.example.reservation.user.User;
 
 @ExtendWith(MockitoExtension.class)
