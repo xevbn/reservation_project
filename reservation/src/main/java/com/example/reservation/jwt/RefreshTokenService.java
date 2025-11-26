@@ -48,4 +48,8 @@ public class RefreshTokenService {
 
         return refreshTokenRepository.save(saved).getRefreshToken();
     }
+
+    public void deleteByUserId(Long userId) {
+        refreshTokenRepository.deleteByUserId(userId);
+    }
 }

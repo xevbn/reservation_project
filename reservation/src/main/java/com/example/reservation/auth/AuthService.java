@@ -90,4 +90,9 @@ public class AuthService {
 
         return res;
     }
+
+    //로그 아웃 시 리프레시 토큰 삭제
+    public void logout(Long userId) {
+        refreshTokenService.deleteByUserId(userId);
+    }
 }

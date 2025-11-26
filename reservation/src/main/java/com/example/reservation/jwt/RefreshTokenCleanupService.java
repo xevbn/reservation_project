@@ -14,6 +14,7 @@ public class RefreshTokenCleanupService {
 
     @Scheduled(cron = "0 0 * * * *")
     public void cleanUpExpiredTokens() {
-        repo.deleteByExpiresAtBefore(LocalDateTime.now());
+        //리프레시 토큰 유예 기간 1일
+        repo.deleteByExpiresAtBefore(LocalDateTime.now().plusDays(1));
     }
 }

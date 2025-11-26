@@ -103,23 +103,6 @@ public class ReservationControllerTest {
     }
 
     @Test
-    public void getReservationList() throws Exception {
-        LocalDate date = LocalDate.now();
-        MvcResult result = mvc.perform(
-            get("/" + date.getMonthValue() + "." + date.getDayOfMonth()))
-            .andExpect(status().isOk())
-            .andDo(print())
-            .andReturn();
-        
-        List<ReservationResponse> response = objectMapper.readValue(
-            result.getResponse().getContentAsString(), 
-            new TypeReference<List<ReservationResponse>>() {}
-        );
-
-        assertThat(response.size() == 2);
-    }
-
-    @Test
     public void makeReservationAtAlreadyAssigned() throws Exception{
         LocalDate date = LocalDate.now();
         ReservationDto dto = new ReservationDto(
@@ -320,5 +303,21 @@ public class ReservationControllerTest {
             .andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM))
             .andDo(print());
+    }
+
+    @Test
+    public void getReservationList() throws Exception {
+        LocalDate date = LocalDate.now();
+        
+        MvcResult rs = mvc.perform(get("/" + date.toString())
+            .param("resourceId", id.toString()))
+            .andExpect(status().isOk())
+            .andDo(print())
+            .andReturn();
+
+        Map<String, Boolean> occupied = objectMapper.readValue(rs.getResponse().getContentAsString(), 
+            new TypeReference<Map<String, Boolean>>() {});
+
+        assertThat(occupied.get("15:00-16:00") == true);
     }
 }

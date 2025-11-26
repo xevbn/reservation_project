@@ -21,9 +21,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 
 
@@ -43,22 +43,15 @@ public class ReservationController {
     //애초에 url을 어떻게 설정한건지도 문제인데
     //응답 어떻게 할건지 생각해두기 응답에 넣기? form 써서 넘기기?
     @GetMapping("/{date}")  //이거 바꿔야하는거 아닌가 몰라
-    public ResponseEntity<?> getSelectedDatReservation(@PathVariable String date) {
-        LocalDate selectedDate = LocalDate.parse(date, formatter);
+    public ResponseEntity<?> getSelectedDatReservation(@PathVariable LocalDate date, @PathParam(value = "resourceId") Long resourceId) {
+        Map<String, Boolean> occupied = reservationService.getReservedList(date, resourceId);
 
-        List<ReservationResponse> body = reservationService.findReservationByDate(selectedDate)
-            .stream()
-            .map(ReservationResponse::new)
-            .toList();
-
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(occupied);
     }
     
     //예약 추가
     @PostMapping("/{date}")
-    public ResponseEntity<?> makeReservation(@PathVariable String date, @RequestBody ReservationDto reservationDto) {
-        LocalDate selectedDate = LocalDate.parse(date, formatter);
-        
+    public ResponseEntity<?> makeReservation(@PathVariable LocalDate date, @RequestBody ReservationDto reservationDto) {
         ReservationResponse resBody = new ReservationResponse(reservationService.makeReservation(reservationDto));
 
         return ResponseEntity.ok(resBody);
@@ -105,16 +98,12 @@ public class ReservationController {
 
     //해당 일자 및 리소스에 대한 시간대 점유 여부 sse 구독 엔드포인트
     @GetMapping(value="/{resourceId}/sse", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@PathVariable Long resourceId, @RequestBody String body) throws JsonProcessingException {
-        Map<String, String> bodyMap = objMapper.readValue(body, new TypeReference<Map<String, String>>() {});
-        String date = bodyMap.get("date");
-
-        LocalDate selectedDate = LocalDate.parse(date);
-        SseEmitter sseEmitter = sseService.subscribe(selectedDate, resourceId);
+    public SseEmitter subscribe(@PathVariable Long resourceId, @PathParam(value="date") LocalDate date) throws JsonProcessingException {
+        SseEmitter sseEmitter = sseService.subscribe(date, resourceId);
 
         //구독 시 바로 해당 시점의 점유 리스트 반환
-        Map<String, Boolean> occupied = reservationService.getReservedList(selectedDate, resourceId);
-        sseService.sendUpdate(selectedDate, resourceId, occupied);
+        Map<String, Boolean> occupied = reservationService.getReservedList(date, resourceId);
+        sseService.sendUpdate(date, resourceId, occupied);
 
         return sseEmitter;
     }

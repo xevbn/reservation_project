@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.reservation.jwt.RefreshTokenRepository;
 import com.example.reservation.user.UserDto;
 import com.example.reservation.user.UserService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -40,6 +41,8 @@ public class LoginTests {
     ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     UserService userService;
+    @Autowired
+    RefreshTokenRepository refreshTokenRepository;
 
     @BeforeEach
     public void setUp() {
@@ -143,5 +146,25 @@ public class LoginTests {
             .andDo(print())
             .andExpect(status().isOk())
             .andReturn();
+    }
+
+    @Test
+    public void logout() throws Exception{
+        UserDto dto = new UserDto("test", "password", "email");
+        userService.registration(dto);
+
+        mvc.perform(
+            post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isOk());
+
+        assertThat(!refreshTokenRepository.findAll().isEmpty());
+
+        mvc.perform(get("/logout"))
+            .andDo(print())
+            .andExpect(status().is3xxRedirection());
+        
+        assertThat(refreshTokenRepository.findAll().isEmpty());
     }
 }
