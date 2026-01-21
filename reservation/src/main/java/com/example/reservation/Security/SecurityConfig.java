@@ -42,10 +42,10 @@ public class SecurityConfig {
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests((authentication) -> authentication
+                .anyRequest().permitAll()/* 
                 .requestMatchers("/auth/*", "/resource/list", "/check_email", "/register", "/login").permitAll()
                 .requestMatchers("/user_detail", "/detail", "/{id}/detail").authenticated()
-                .requestMatchers("/resource/*").hasRole("ADMIN")
-                .anyRequest().authenticated()
+                .requestMatchers("/resource/*").hasRole("ADMIN")*/
             )
             //oauth 로그인 필터 추가 및 oidc 엔드포인트 추가
             .oauth2Login(oauth2 -> oauth2

@@ -34,14 +34,14 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             String accessToken = jwtProvider.createToken(user);
             String refreshToken = refreshTokenService.generateRefreshToken(user);
 
-            res.setHeader("Authorization", "Bearer " + accessToken);
-
             Cookie cookie = new Cookie("refresh_token", refreshToken);
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/");
             cookie.setMaxAge(60 * 60 * 24 * 7);
             res.addCookie(cookie);
+
+            res.sendRedirect("http://localhost:5173/oauth/success");
 
             super.onAuthenticationSuccess(req, res, auth);
         }

@@ -31,8 +31,8 @@ public class ReservationService {
 
     //예약 작성
     public Reservation makeReservation(ReservationDto reservationDto) {
-        String resourceName = reservationDto.getResourceName();
-        Resource resource = resourceRepository.findByName(resourceName)
+        Long resourceId = reservationDto.getResourceId();
+        Resource resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
             
         LocalDate date = reservationDto.getDate();
@@ -46,6 +46,7 @@ public class ReservationService {
         }
         
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println(username);
         User user = userService.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -98,8 +99,8 @@ public class ReservationService {
 
     //예약 변경
     public void changeReservation(Long id, ReservationDto reservationDto) {
-        String resourceName = reservationDto.getResourceName();
-        Resource resource = resourceRepository.findByName(resourceName)
+        Long resourceId = reservationDto.getResourceId();
+        Resource resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

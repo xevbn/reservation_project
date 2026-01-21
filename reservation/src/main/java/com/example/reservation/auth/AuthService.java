@@ -95,4 +95,9 @@ public class AuthService {
     public void logout(Long userId) {
         refreshTokenService.deleteByUserId(userId);
     }
+
+    //액세스 토큰 발급
+    public String getAccessToken(User user) {
+        return jwtProvider.createToken(user);
+    }
 }

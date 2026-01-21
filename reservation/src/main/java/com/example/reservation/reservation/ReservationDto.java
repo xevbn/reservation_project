@@ -21,5 +21,5 @@ public class ReservationDto {
     LocalTime startTime;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     LocalTime endTime;
-    String resourceName;
+    Long resourceId;
 }

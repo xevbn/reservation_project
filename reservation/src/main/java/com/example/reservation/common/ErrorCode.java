@@ -14,6 +14,7 @@ public enum ErrorCode {
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 만료되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효한 토큰이 아닙니다.");
 
+
     private final HttpStatus status;
     private final String message;
 

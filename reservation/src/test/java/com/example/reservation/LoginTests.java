@@ -68,7 +68,8 @@ public class LoginTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
-            .andExpect(redirectedUrl("/login"));
+            .andExpect(redirectedUrl("/login"))
+            .andDo(print());
     }
 
     @Test

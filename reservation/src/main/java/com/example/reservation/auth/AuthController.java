@@ -42,13 +42,13 @@ public class AuthController {
 
         return ResponseEntity.ok()
             .header(HttpHeaders.COOKIE, cookie.toString())
-            .body(Map.of("Authorization", "Bearer " + res.getAccessToken()));
+            .body(Map.of("Authorization", res.getAccessToken()));
     }
 
     //토큰 만료 시
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refresh(@CookieValue String refreshToken) {
-        LoginResponse res = authService.refresh(refreshToken);
+    public ResponseEntity<?> refresh(@CookieValue String refresh_token) {
+        LoginResponse res = authService.refresh(refresh_token);
 
         //새로운 리프레시 토큰 httponly 쿠키에 추가
         ResponseCookie cookie = ResponseCookie.from("refreshToken", res.getAccessToken())
@@ -85,4 +85,18 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
     
+
+    //OAuth 로그인 시 프론트에서 access token 받는 용도
+    @GetMapping("/auth/oauth/success")
+    public ResponseEntity<?> oauthSuccess(Authentication auth) {
+        AuthResponse res = authService.CheckAuth(auth);
+
+        if(!res.isValid()) {
+            return ResponseEntity.internalServerError().body("auth error");
+        }
+
+        return ResponseEntity.ok(
+            Map.of("Authorization", "Bearer " + authService.getAccessToken(res.getUser()))
+        );
+    }
 }
