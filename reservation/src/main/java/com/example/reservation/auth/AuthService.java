@@ -1,5 +1,7 @@
 package com.example.reservation.auth;
 
+import java.util.Map;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -9,11 +11,12 @@ import com.example.reservation.Security.CustomPrincipal;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
 import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.jwt.RefreshToken;
+import com.example.reservation.jwt.JwtService;
 import com.example.reservation.jwt.RefreshTokenService;
 import com.example.reservation.user.User;
 import com.example.reservation.user.UserService;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -23,6 +26,7 @@ public class AuthService {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final JwtProvider jwtProvider;
+    private final JwtService jwtService;
 
     public LoginResponse login(LoginRequest req) {
         String username = req.getUsername();
@@ -47,28 +51,8 @@ public class AuthService {
     }
 
     public LoginResponse refresh(String refreshToken) {
-        //리프레시 토큰 유효하지 않을 시 에러 반환
-        if(!jwtProvider.validateToken(refreshToken)) {
-            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
-        }
-
-        //리프레시 토큰에서 userId 가져와 DB와 비교
-        Long userId = jwtProvider.getUserId(refreshToken);
-        RefreshToken stored = refreshTokenService.getRefreshTokenByUserId(userId);
-
-        User user = userService.findById(userId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        //리프레시 토큰이 동일하지 않을 시 에러 반환
-        if(!stored.getRefreshToken().equals(refreshToken)) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN);
-        }
-
-        //새로운 토큰 발급
-        String newAccessToken = jwtProvider.createToken(user);
-        String newRefreshToken = refreshTokenService.UpdateRefreshToken(user);
-
-        LoginResponse res = new LoginResponse(newAccessToken, newRefreshToken, user);
+        Map<String, String> tokens = jwtService.refresh(refreshToken);
+        LoginResponse res = new LoginResponse(tokens.get("accessToken"), tokens.get("refreshToken"));
 
         return res;
     }
@@ -91,13 +75,11 @@ public class AuthService {
         return res;
     }
 
+    @Transactional
     //로그 아웃 시 리프레시 토큰 삭제
-    public void logout(Long userId) {
-        refreshTokenService.deleteByUserId(userId);
-    }
+    public void logout(String refreshToken) {
+        System.out.println("로그아웃 호출됨: " + refreshToken);
 
-    //액세스 토큰 발급
-    public String getAccessToken(User user) {
-        return jwtProvider.createToken(user);
+        refreshTokenService.deleteByRefreshToken(refreshToken);
     }
 }

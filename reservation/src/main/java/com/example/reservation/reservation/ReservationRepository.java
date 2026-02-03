@@ -5,7 +5,6 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -14,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 import com.example.reservation.resource.Resource;
 import com.example.reservation.user.User;
 
-import jakarta.persistence.LockModeType;
+import jakarta.persistence.Version;
 import jakarta.transaction.Transactional;
 
 public interface ReservationRepository extends CrudRepository<Reservation, Long>{
@@ -22,7 +21,7 @@ public interface ReservationRepository extends CrudRepository<Reservation, Long>
     public List<Reservation> findByUser(User user);
     public Optional<Reservation> findByUserAndStartTimeAndDate(User user, LocalTime startTime, LocalDate date);
     public void deleteByUserAndStartTimeAndDate(User user, LocalTime startTime, LocalDate date);
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Version
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
         "FROM Reservation r " +
         "WHERE r.resource = :resource " +

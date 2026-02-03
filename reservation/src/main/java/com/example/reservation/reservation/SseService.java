@@ -30,6 +30,7 @@ public class SseService {
 
         emitter.onCompletion(() -> emitters.remove(key));
         emitter.onTimeout(() ->  emitters.remove(key));
+        emitter.onError((e) -> emitters.remove(key));
 
         return emitter;
     }
@@ -61,6 +62,7 @@ public class SseService {
                 );
             } catch (Exception e) {
                 //오류 로직 추가
+                System.out.println("sse Error: " + e.getMessage());
                 emitter.complete();
             }
         }

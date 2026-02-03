@@ -1,5 +1,7 @@
 package com.example.reservation.Security;
 
+import java.util.List;
+
 import javax.crypto.SecretKey;
 
 import org.springframework.context.annotation.Bean;
@@ -19,6 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.reservation.jwt.JwtAuthorizationFilter;
 import com.example.reservation.jwt.JwtProvider;
+import com.example.reservation.jwt.JwtService;
 
 import lombok.AllArgsConstructor;
 
@@ -30,12 +33,13 @@ public class SecurityConfig {
     private final CustomOidcUserService customOidcUserService;
     //formlogin에서 사용
     private final CustomUserDetailsService userDetailsService;
+    private final JwtService jwtService;
     private final SecretKey key;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
     
     @Bean
     public SecurityFilterChain filter(HttpSecurity http, JwtProvider jwtProvider) throws Exception{
-        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(key, userDetailsService, jwtProvider);
+        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(key, userDetailsService, jwtProvider, jwtService);
         http
             .csrf((csrf) -> csrf.disable())
             .cors((cors) -> cors.configurationSource(corsConfigurationSource()))
@@ -56,6 +60,7 @@ public class SecurityConfig {
                 .successHandler(oAuth2LoginSuccessHandler))
             .addFilterBefore(jwtAuthorizationFilter, OAuth2LoginAuthenticationFilter.class)
             .formLogin(form -> form.disable())
+            .logout(logout -> logout.disable())
             .httpBasic(basic -> basic.disable());
 
         return http.build();
@@ -75,9 +80,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        config.addAllowedOriginPattern("http://localhost:5173");
+        config.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+        config.setAllowedHeaders(List.of(
+            "Authorization",
+            "Content-Type"
+        ));
+        config.setExposedHeaders(List.of(
+            "Authorization"
+        ));
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

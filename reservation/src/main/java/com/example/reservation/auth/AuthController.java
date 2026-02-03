@@ -8,6 +8,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,18 +41,22 @@ public class AuthController {
             .maxAge(7 * 60 * 60 * 24)
             .build();
 
+        Long userId = res.getUser().getId();
+
         return ResponseEntity.ok()
-            .header(HttpHeaders.COOKIE, cookie.toString())
-            .body(Map.of("Authorization", res.getAccessToken()));
+            .header(HttpHeaders.SET_COOKIE, cookie.toString())
+            .body(Map.of("Authorization", res.getAccessToken(),
+                        "userId", userId));
     }
 
     //토큰 만료 시
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refresh(@CookieValue String refresh_token) {
-        LoginResponse res = authService.refresh(refresh_token);
+    public ResponseEntity<?> refresh(@CookieValue String refreshToken) {
+        System.out.println("old refreshToken: " + refreshToken);
+        LoginResponse res = authService.refresh(refreshToken);
 
         //새로운 리프레시 토큰 httponly 쿠키에 추가
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", res.getAccessToken())
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", res.getRefreshToken())
             .httpOnly(true)
             .secure(true)
             .path("/")
@@ -61,7 +66,7 @@ public class AuthController {
         //응답에 httpOnly 쿠키 및 액세스 토큰 포함
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(Map.of("accessToken", res.getAccessToken()));
+            .body(Map.of("Authorization", res.getAccessToken()));
     }
     
     
@@ -79,24 +84,23 @@ public class AuthController {
     
     //로그아웃 시 리프레시 토큰 삭제 등
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(@AuthenticationPrincipal User user) {
-        authService.logout(user.getId());
+    public ResponseEntity<?> logout(@CookieValue String refreshToken) {
+        authService.logout(refreshToken);
 
-        return ResponseEntity.ok().build();
-    }
-    
+        ResponseCookie refresh = ResponseCookie.from("refreshToken", "")
+            .httpOnly(true)
+            .secure(true)
+            .path("/")
+            .sameSite("Lax")
+            .maxAge(0)
+            .build();
 
-    //OAuth 로그인 시 프론트에서 access token 받는 용도
-    @GetMapping("/auth/oauth/success")
-    public ResponseEntity<?> oauthSuccess(Authentication auth) {
-        AuthResponse res = authService.CheckAuth(auth);
+        SecurityContextHolder.clearContext();
 
-        if(!res.isValid()) {
-            return ResponseEntity.internalServerError().body("auth error");
-        }
+        ResponseEntity<?> res = ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, refresh.toString())
+            .body(Map.of("message", "successfully logged out"));
 
-        return ResponseEntity.ok(
-            Map.of("Authorization", "Bearer " + authService.getAccessToken(res.getUser()))
-        );
+        return res;
     }
 }

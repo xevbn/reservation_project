@@ -42,7 +42,7 @@ public class ReservationServiceTest {
     ReservationService reservationService;
     @Autowired
     ResourceRepository resourceRepository;
-    String resourceName;
+    Long resourceId;
 
     Long id;
 
@@ -67,7 +67,7 @@ public class ReservationServiceTest {
     public void setUp() {
         Resource resource = new Resource("room13");
         resourceRepository.saveAndFlush(resource);
-        resourceName = resource.getName();
+        resourceId = resource.getId();
 
         makeAuth(10);
     }
@@ -87,7 +87,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         reservationService.makeReservation(reservDto);
 
@@ -101,7 +101,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         reservationService.makeReservation(reservDto);
 
@@ -109,7 +109,7 @@ public class ReservationServiceTest {
         reservationDto.setDate(date);
         reservationDto.setStartTime(LocalTime.of(16, 00));
         reservationDto.setEndTime(LocalTime.of(18, 00));
-        reservationDto.setResourceName(resourceName);
+        reservationDto.setResourceId(resourceId);
 
         assertThrows(IllegalStateException.class,
             () -> reservationService.makeReservation(reservationDto));
@@ -123,7 +123,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(18, 0));
         reservDto.setEndTime(LocalTime.of(19, 0));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -167,7 +167,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         Long reservId = reservationService.makeReservation(reservDto).getId();
 
@@ -183,7 +183,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         Long thisReservId = reservationService.makeReservation(reservDto).getId();
 
@@ -199,7 +199,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         assertThrows(EntityNotFoundException.class,
             () -> reservationService.changeReservation(id, reservDto));
@@ -214,7 +214,7 @@ public class ReservationServiceTest {
         ReservationDto dto1 = new ReservationDto(date,
             LocalTime.of(16, 0),
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
         Reservation r1 = reservationService.makeReservation(dto1);
 
@@ -222,7 +222,7 @@ public class ReservationServiceTest {
         ReservationDto dto2 = new ReservationDto(date,
             LocalTime.of(17, 0),
             LocalTime.of(18, 0),
-            resourceName
+            resourceId
         );
         Reservation r2 = reservationService.makeReservation(dto2);
 
@@ -230,7 +230,7 @@ public class ReservationServiceTest {
         ReservationDto changeDto = new ReservationDto(date,
             LocalTime.of(16, 0),
             LocalTime.of(19, 0),
-            resourceName
+            resourceId
         );
 
         assertThrows(IllegalStateException.class, () -> {
@@ -244,7 +244,7 @@ public class ReservationServiceTest {
         LocalDate date = LocalDate.now().plusDays(1);
         LocalTime start = LocalTime.of(16, 00);
         LocalTime end = LocalTime.of(17, 00);
-        ReservationDto dto = new ReservationDto(date, start, end, resourceName);
+        ReservationDto dto = new ReservationDto(date, start, end, resourceId);
 
         Long reservId = reservationService.makeReservation(dto).getId();
 
@@ -252,7 +252,7 @@ public class ReservationServiceTest {
             date,
             LocalTime.of(18, 0),
             LocalTime.of(19, 0),
-            resourceName
+            resourceId
         );
 
         reservationService.changeReservation(reservId, dto);
@@ -268,7 +268,7 @@ public class ReservationServiceTest {
         LocalDate date = LocalDate.now().plusDays(1);
         LocalTime start = LocalTime.of(16, 00);
         LocalTime end =  LocalTime.of(17, 00);
-        ReservationDto dto = new ReservationDto(date, start, end, resourceName);
+        ReservationDto dto = new ReservationDto(date, start, end, resourceId);
 
         Long anotherUsersReservId = reservationService.makeReservation(dto).getId();
 
@@ -278,7 +278,7 @@ public class ReservationServiceTest {
             date,
             LocalTime.of(18, 0),
             LocalTime.of(19, 0),
-            resourceName
+            resourceId
         );
 
         assertThrows(EntityNotFoundException.class,
