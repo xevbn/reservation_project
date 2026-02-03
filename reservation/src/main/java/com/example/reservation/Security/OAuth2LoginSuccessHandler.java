@@ -41,7 +41,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             cookie.setMaxAge(60 * 60 * 24 * 7);
             res.addCookie(cookie);
 
-            res.sendRedirect("http://localhost:5173/oauth/success");
+            res.sendRedirect("http://localhost:5173/oauth/success?accessToken=" + accessToken);
 
             super.onAuthenticationSuccess(req, res, auth);
         }

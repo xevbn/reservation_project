@@ -136,7 +136,7 @@ HTTP/1.1 204 No Content
 | 항목 | 내용 |
 |------|-----|
 |Method|`DELETE`|
-|URL|`/users/delete`|
+|URL|`/user_detail/delete`|
 |설명|사용자 삭제|
 |인증|필요|
 
@@ -176,7 +176,7 @@ HTTP/1.1 204 No Content
 | 항목 | 내용 |
 |------|-----|
 |Method|`GET`|
-|URL|`/{date}`|
+|URL|`/reservation/{date}`|
 |설명|해당 일자의 예약 정보 조회|
 |인증|불필요|
 
@@ -207,7 +207,7 @@ HTTP/1.1 204 No Content
 | 항목 | 내용 |
 |------|-----|
 |Method|`POST`|
-|URL|`/{date}`|
+|URL|`/reservation/{date}`|
 |설명|해당 일자에 예약 생성|
 |인증|필요|
 
@@ -237,7 +237,7 @@ HTTP/1.1 204 No Content
 | 항목 | 내용 |
 |------|-----|
 |Method|`PUT`|
-|URL|`/{id}/detail`|
+|URL|`/reservation/{id}/detail`|
 |설명|예약 정보 수정|
 |인증|필요|
 
@@ -245,7 +245,6 @@ HTTP/1.1 204 No Content
 ```json
 {
     "id": 1,
-    "userID": 1,
     "date": "2025-01-01",
     "startTime": "01:00",
     "endTime": "02:00"
@@ -269,6 +268,39 @@ HTTP/1.1 204 No Content
 #### response (204 no Content)
 ```
 HTTP/1.1 204 No Content
+```
+
+---
+
+### 3.5 사용자의 예약 확인 
+
+| 항목 | 내용 |
+|------|-----|
+|Method|`GET`|
+|URL|`/reservation/detail`|
+|설명|현재 사용자의 모든 예약 내역 확인|
+|인증|필요|
+
+#### response (204 no Content)
+```json
+{
+    {
+        "id": 1,
+        "date": 2025-01-01,
+        "startTime": "00:00",
+        "endTime": "01:00",
+        "username": "user1",
+        "resourceId": "resource1"
+    },
+    {
+        "id": 2,
+        "date": 2025-01-02,
+        "startTime": "01:00",
+        "endTime": "02:00",
+        "username": "user2",
+        "resourceId": "resource2"
+    }
+}
 ```
 
 ---

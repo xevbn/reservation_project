@@ -18,10 +18,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getErrorCode().geHttpStatus()).body(e.getMessage());
     }
 
+    /*
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception e) {
+        System.out.println("글로벌 오류 핸들러에서 예외 처리 발생");
         return ResponseEntity.internalServerError().body(e.getMessage());
     }
+    */
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<?> handle404(NoHandlerFoundException e) {

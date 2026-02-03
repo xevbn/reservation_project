@@ -32,7 +32,7 @@ public class UserController {
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
         userService.registration(userDto);
         
-        return ResponseEntity.ok(Map.of("message", "회원가입 성공", "redirectUrl", "/login"));
+        return ResponseEntity.ok(Map.of("message", "회원가입 성공"));
     }
     
     //사용자 상세 정보
@@ -50,7 +50,7 @@ public class UserController {
         userService.deleteUser();
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
-            .body(Map.of("message", "회원탈퇴 성공", "redirectUrl", "/login"));
+            .body(Map.of("message", "회원탈퇴 성공"));
     }
 
     //사용자 정보 변경
@@ -59,7 +59,7 @@ public class UserController {
         userService.editUser(userDto);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
-            .body(Map.of("message", "변경 성공", "redirectUrl", "/login"));
+            .body(Map.of("message", "변경 성공"));
     }
 
     //이메일 중복 확인

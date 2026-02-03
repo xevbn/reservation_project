@@ -99,7 +99,7 @@ public class ReservationController {
     }
 
     //해당 일자 및 리소스에 대한 시간대 점유 여부 sse 구독 엔드포인트
-    @GetMapping(value="/{resourceId}/sse", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value="/sse/{resourceId}", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@PathVariable Long resourceId, @PathParam(value="date") LocalDate date) throws JsonProcessingException {
         SseEmitter sseEmitter = sseService.subscribe(date, resourceId);
 

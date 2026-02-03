@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 
 import com.example.reservation.user.User;
@@ -48,7 +47,7 @@ public class JwtProvider {
         return Jwts.builder()
             .setSubject(id)
             .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiry()))
+            .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getRefreshExpiry()))
             .signWith(key)
             .compact();
     }
@@ -58,7 +57,7 @@ public class JwtProvider {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return false;
         }
     }
