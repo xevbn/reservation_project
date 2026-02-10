@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.reservation.user.User;
+import com.example.reservation.jwt.JwtConfig;
 import com.example.reservation.user.UserDto;
 
 import lombok.AllArgsConstructor;
@@ -26,6 +25,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final JwtConfig jwtConfig;
 
     //로그인 요청
     @PostMapping("/login")
@@ -38,7 +38,7 @@ public class AuthController {
             .secure(true)
             .path("/")
             .sameSite("Strict")
-            .maxAge(7 * 60 * 60 * 24)
+            .maxAge(jwtConfig.getRefreshExpiry() / 1000)
             .build();
 
         Long userId = res.getUser().getId();
@@ -52,7 +52,6 @@ public class AuthController {
     //토큰 만료 시
     @PostMapping("/auth/refresh")
     public ResponseEntity<?> refresh(@CookieValue String refreshToken) {
-        System.out.println("old refreshToken: " + refreshToken);
         LoginResponse res = authService.refresh(refreshToken);
 
         //새로운 리프레시 토큰 httponly 쿠키에 추가
@@ -61,6 +60,7 @@ public class AuthController {
             .secure(true)
             .path("/")
             .sameSite("Strict")
+            .maxAge(jwtConfig.getRefreshExpiry() / 1000)
             .build();
 
         //응답에 httpOnly 쿠키 및 액세스 토큰 포함

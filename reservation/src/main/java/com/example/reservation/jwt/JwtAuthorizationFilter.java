@@ -73,7 +73,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json;UTF-8");
-                    response.getWriter().write("{\"code\":\"TOKEN_EXPIRED\", \"message\":\"토큰 만료됨\"}");
+                    response.getWriter().write("{\"code\":\"TOKEN_EXPIRED\", \"message\":\"token expired\"}");
 
                     return;
                 } catch (MalformedJwtException | UnsupportedJwtException | SignatureException | IllegalArgumentException | UsernameNotFoundException e) {

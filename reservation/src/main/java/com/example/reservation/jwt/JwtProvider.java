@@ -8,8 +8,11 @@ import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
 
+import com.example.reservation.common.BusinessException;
+import com.example.reservation.common.ErrorCode;
 import com.example.reservation.user.User;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +60,8 @@ public class JwtProvider {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            throw new BusinessException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         } catch (IllegalArgumentException e) {
             return false;
         }
