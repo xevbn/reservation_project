@@ -320,4 +320,14 @@ public class ReservationControllerTest {
 
         assertThat(occupied.get("15:00-16:00") == true);
     }
+
+    @Test
+    public void getUsersReservations() throws Exception {
+        MvcResult rs = mvc.perform(get("/reservation/detail"))
+            .andExpect(status().isOk())
+            .andDo(print())
+            .andReturn();
+
+        
+    }
 }

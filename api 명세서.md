@@ -217,7 +217,7 @@ HTTP/1.1 204 No Content
     "date": "2025-01-01",
     "startTime": "00:00:00",
     "endTime": "01:00:00",
-    "resourceName": "resourceName"
+    "resourceId": 0
 }
 ```
 
@@ -297,7 +297,7 @@ HTTP/1.1 204 No Content
         "date": 2025-01-02,
         "startTime": "01:00",
         "endTime": "02:00",
-        "username": "user2",
+        "username": "user1",
         "resourceId": "resource2"
     }
 }
