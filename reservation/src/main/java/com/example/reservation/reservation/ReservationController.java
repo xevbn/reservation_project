@@ -45,7 +45,7 @@ public class ReservationController {
     //애초에 url을 어떻게 설정한건지도 문제인데
     //응답 어떻게 할건지 생각해두기 응답에 넣기? form 써서 넘기기?
     @GetMapping("/{date}")  //이거 바꿔야하는거 아닌가 몰라
-    public ResponseEntity<?> getSelectedDatReservation(@PathVariable LocalDate date, @PathParam(value = "resourceId") Long resourceId) {
+    public ResponseEntity<?> getSelectedDateReservation(@PathVariable LocalDate date, @PathParam(value = "resourceId") Long resourceId) {
         Map<String, Boolean> occupied = reservationService.getReservedList(date, resourceId);
 
         return ResponseEntity.ok(occupied);
@@ -99,13 +99,9 @@ public class ReservationController {
     }
 
     //해당 일자 및 리소스에 대한 시간대 점유 여부 sse 구독 엔드포인트
-    @GetMapping(value="/sse/{resourceId}", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@PathVariable Long resourceId, @PathParam(value="date") LocalDate date) throws JsonProcessingException {
-        SseEmitter sseEmitter = sseService.subscribe(date, resourceId);
-
-        //구독 시 바로 해당 시점의 점유 리스트 반환
-        Map<String, Boolean> occupied = reservationService.getReservedList(date, resourceId);
-        sseService.sendUpdate(date, resourceId, occupied);
+    @GetMapping(value="/sse/subscribe", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe( @PathParam(value="userId") Long userId) throws JsonProcessingException {
+        SseEmitter sseEmitter = sseService.subscribe(userId);
 
         return sseEmitter;
     }

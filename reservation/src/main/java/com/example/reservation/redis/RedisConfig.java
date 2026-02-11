@@ -1,4 +1,4 @@
-package com.example.reservation.jwt;
+package com.example.reservation.redis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -8,7 +8,12 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import com.example.reservation.reservation.SseService;
 
 //레디스 설정 정보
 @Configuration
@@ -38,6 +43,21 @@ public class RedisConfig {
         redisTemplate.setDefaultSerializer(new StringRedisSerializer());
 
         return redisTemplate;
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory rf,
+                                                        MessageListenerAdapter adapter) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(rf);
+        container.addMessageListener(adapter, new ChannelTopic("SLOT_UPDATE"));
+
+        return container;
+    }
+
+    @Bean
+    public MessageListenerAdapter listenerAdapter(SseService sseService) {
+        return new MessageListenerAdapter(sseService, "broadcast");
     }
 
     //리스트를 반환하는 작업

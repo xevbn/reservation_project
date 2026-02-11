@@ -2,11 +2,13 @@ package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +29,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final UserService userService;
     private final ResourceRepository resourceRepository;
-    private final SseService sseService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     //예약 작성
     public Reservation makeReservation(ReservationDto reservationDto) {
@@ -60,8 +62,7 @@ public class ReservationService {
 
         Reservation reserved = reservationRepository.save(newReservation);
 
-        Map<String, Boolean> occupied = getReservedList(date, resource.getId());
-        sseService.sendUpdate(date, resource.getId(), occupied);
+        publishUpdate("ADD", date, resourceId);
 
         return reserved;
     }
@@ -94,6 +95,8 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
+        publishUpdate("DELETE", reservation.getDate(), reservation.getResource().getId());
+
         reservationRepository.deleteById(id);
     }
 
@@ -115,6 +118,9 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
+        LocalDate prevDate = reservation.getDate();
+        Long prevResourceId = reservation.getResource().getId();
+
         LocalDate newDate = reservationDto.getDate();
         LocalTime newStartTime = reservationDto.getStartTime();
         LocalTime newEndTime = reservationDto.getEndTime();
@@ -135,6 +141,9 @@ public class ReservationService {
         reservation.setDate(newDate);
         reservation.setStartTime(newStartTime);
         reservation.setEndTime(newEndTime);
+
+        publishUpdate("DELETE", prevDate, prevResourceId);
+        publishUpdate("ADD", newDate, resourceId);
     }
 
     //전체 예약 리스트 반환
@@ -183,5 +192,12 @@ public class ReservationService {
         }
 
         return timeList;
+    }
+
+    public void publishUpdate(String action, LocalDate date, Long resourceId) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-DD");
+        String payLoad = String.format("{\"action\":\"%s\",\"date\":\"%s\",\"resourceId\":%d}",
+            action, date.format(formatter), resourceId);
+        redisTemplate.convertAndSend("SLOT_UPDATE", payLoad);
     }
 }

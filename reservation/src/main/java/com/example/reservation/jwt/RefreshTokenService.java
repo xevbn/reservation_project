@@ -4,6 +4,7 @@ import java.time.Duration;
 
 import org.springframework.stereotype.Service;
 
+import com.example.reservation.redis.RedisSingleDataServiceImpl;
 import com.example.reservation.user.User;
 
 import lombok.AllArgsConstructor;

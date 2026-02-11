@@ -21,8 +21,8 @@ public class SseServiceTest {
         LocalDate date = LocalDate.now();
         Long id = 1L;
 
-        SseEmitter emitter1 = sseService.subscribe(date, id);
-        SseEmitter emitter2 = sseService.subscribe(date, id);
+        SseEmitter emitter1 = sseService.subscribe(id);
+        SseEmitter emitter2 = sseService.subscribe(id);
 
         AtomicReference<Object> receive1 = new AtomicReference<>();
         AtomicReference<Object> receive2 = new AtomicReference<>();
@@ -32,7 +32,7 @@ public class SseServiceTest {
             if(emitter == emitter2) receive2.set(data);
         });
 
-        sseService.sendUpdate(date, id, "DATA");
+        sseService.sendUpdate(id, "DATA");
 
         Thread.sleep(100);
 
