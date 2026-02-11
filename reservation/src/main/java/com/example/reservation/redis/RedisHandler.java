@@ -1,4 +1,4 @@
-package com.example.reservation.jwt;
+package com.example.reservation.redis;
 
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.ValueOperations;
