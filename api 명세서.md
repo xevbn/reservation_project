@@ -32,7 +32,11 @@
 ```json
 {
     "accessToken": "jwt token",
-    "refreshToken": "refresh token"
+    "refreshToken": "refresh token",
+    "userInfo": {
+        "id": 1,
+        "role": "USER"
+    }
 }
 ```
 
@@ -47,7 +51,11 @@
 |설명|사용자 로그인(OAuth2) 및 JWT 발급|
 |인증|불필요|
 
-#### 요청 및 응답은 각 provider api 사용
+#### request 
+provider api 사용
+
+#### response
+accessToken 및 userInfo를 pathParam으로 전달
 
 ### 1.3 회원가입
 
@@ -399,7 +407,7 @@ Body = event:timeslots
 
 | 항목 | 내용 |
 |------|-----|
-|Method|`POST`|
+|Method|`DELETE`|
 |URL|`/resource/{id}/delete`|
 |설명|예약 개체 삭제|
 |인증|필요(admin)|
