@@ -34,8 +34,6 @@ import lombok.AllArgsConstructor;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final SecretKey key;
     private final CustomUserDetailsService customUserDetailsService;
-    private final JwtProvider jwtProvider;
-    private final JwtService jwtService;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -79,18 +77,20 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 } catch (MalformedJwtException | UnsupportedJwtException | SignatureException | IllegalArgumentException | UsernameNotFoundException e) {
                     SecurityContextHolder.clearContext();
                     System.out.println(e.getMessage());
+                    filterChain.doFilter(request, response);
                 } 
 
-
-            System.out.println("예외 안 걸림 만료 신호 없음");
-            filterChain.doFilter(request, response);
-        }
+                System.out.println("예외 안 걸림 만료 신호 없음");
+                filterChain.doFilter(request, response);
+            } else {
+                filterChain.doFilter(request, response);
+            }
     }
 
     @Override
     public boolean shouldNotFilter(HttpServletRequest req) throws ServletException {
         String path = req.getRequestURI();
-        List<String> exclude = List.of("/login", "/register", "/check_email", "/auth/refresh", "/oauth2/authorize/*", "/reservation/sse/subscribe");
+        List<String> exclude = List.of("/login", "/register", "/check_email", "/auth/refresh", "/oauth2/authorize/*", "/favicon.ico");
 
         return exclude.stream().anyMatch(pattern -> new AntPathMatcher().match(pattern, path));
     }

@@ -41,12 +41,10 @@ public class AuthController {
             .maxAge(jwtConfig.getRefreshExpiry() / 1000)
             .build();
 
-        Long userId = res.getUser().getId();
-
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(Map.of("Authorization", res.getAccessToken(),
-                        "userId", userId));
+                        "userInfo", res.getAuthInfo()));
     }
 
     //토큰 만료 시
@@ -85,6 +83,10 @@ public class AuthController {
     //로그아웃 시 리프레시 토큰 삭제 등
     @GetMapping("/logout")
     public ResponseEntity<?> logout(@CookieValue String refreshToken) {
+        if(refreshToken == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "refreshToken is null"));
+        }
+        
         authService.logout(refreshToken);
 
         ResponseCookie refresh = ResponseCookie.from("refreshToken", "")

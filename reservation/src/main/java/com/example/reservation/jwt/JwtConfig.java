@@ -25,4 +25,8 @@ public class JwtConfig {
     public Long getRefreshExpiry() {
         return refreshExpire;
     }
+
+    public int getRefreshExpirySec() {
+        return refreshExpire.intValue() / 1000;
+    }
 }

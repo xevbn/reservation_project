@@ -45,7 +45,8 @@ public class AuthService {
         String accessToken = jwtProvider.createToken(user);
         String refreshToken = refreshTokenService.generateRefreshToken(user);
 
-        LoginResponse res = new LoginResponse(accessToken, refreshToken, user);
+        AuthInfo authInfo = getAuthInfo(user);
+        LoginResponse res = new LoginResponse(accessToken, refreshToken, authInfo);
 
         return res;
     }
@@ -81,5 +82,9 @@ public class AuthService {
         System.out.println("로그아웃 호출됨: " + refreshToken);
 
         refreshTokenService.deleteByRefreshToken(refreshToken);
+    }
+
+    public AuthInfo getAuthInfo(User user) {
+        return new AuthInfo(user.getId(), user.getUserRole());
     }
 }
