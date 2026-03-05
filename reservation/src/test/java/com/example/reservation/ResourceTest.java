@@ -48,18 +48,13 @@ public class ResourceTest {
         UserDto userDto = new UserDto("admin", "passwd", "email");
         userService.registrationForAdmin(userDto);
 
-        Resource resource = new Resource();
-        resource.setName("room1");
-        resource.setDocname("name1");
-
-        resourceService.addResource(resource);
+        resourceService.addResource("room1");
     }
 
     @Test
     public void addResource() throws Exception{
         Resource newResource = new Resource();
         newResource.setName("room2");
-        newResource.setDocname("name2");
 
         assertNotNull(mvc);
 
@@ -83,10 +78,7 @@ public class ResourceTest {
 
     @Test
     public void deleteResource() throws Exception {
-        Resource newResource = new Resource();
-        newResource.setName("delete");
-        newResource.setDocname("deleted");
-        Long id = resourceService.addResource(newResource).getId();
+        Long id = resourceService.addResource("delete").getId();
 
         mvc.perform(delete("/resource/" + id + "/delete"))
             .andExpect(status().isNoContent());
@@ -94,14 +86,10 @@ public class ResourceTest {
 
     @Test
     public void editResource() throws Exception {
-        Resource newResource = new Resource();
-        newResource.setName("asdf");
-        newResource.setDocname("asdf");
-        Long id = resourceService.addResource(newResource).getId();
+        Long id = resourceService.addResource("asdf").getId();
 
         Resource edit = new Resource();
         edit.setName("new");
-        edit.setDocname("docname");
 
         MvcResult rs = mvc.perform(put("/resource/" + id.toString() + "/edit")
             .contentType(MediaType.APPLICATION_JSON)

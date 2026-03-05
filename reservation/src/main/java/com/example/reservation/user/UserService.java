@@ -12,7 +12,9 @@ import com.example.reservation.common.ErrorCode;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class UserService {
@@ -33,8 +35,11 @@ public class UserService {
         new_user.setUserRole("USER");
         new_user.setProvider("local");
         new_user.setProviderId(null);
+        User user = userRepository.save(new_user);
 
-        return userRepository.save(new_user);
+        log.info("User [계정 생성] - userId: {}, provider: {}", user.getId(), user.getProvider());
+
+        return user;
     }
 
     //사용자 상세 정보 페이지
@@ -52,7 +57,11 @@ public class UserService {
     //회원탈퇴
     public void deleteUser() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
         userRepository.deleteByUsername(username);
+        log.info("User [계정 삭제] - userId: {}", user.getId());
     }
 
     //사용자 정보 변경

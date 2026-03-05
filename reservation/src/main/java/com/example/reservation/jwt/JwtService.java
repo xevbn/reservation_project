@@ -33,4 +33,12 @@ public class JwtService {
         return Map.of("accessToken", newAccessToken, 
             "refreshToken", newRefreshToken);
     }
+
+    public String getUsername(String refreshToken) {
+        Long userId = jwtProvider.getUserId(refreshToken);
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    
+        return user.getUsername();
+    }
 }

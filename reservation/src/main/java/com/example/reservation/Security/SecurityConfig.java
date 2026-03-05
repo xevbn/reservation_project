@@ -47,9 +47,9 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests((authentication) -> authentication
                 // .anyRequest().permitAll()
-                .requestMatchers("/auth/**", "/resource/list", "/check_email", "/register", "/login/**", "/logout", "/favicon.ico").permitAll()
+                .requestMatchers("/auth/**", "/resource/list", "/check_email", "/register", "/login/**", "/logout", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/user_detail", "/detail", "/reservation/**").authenticated()
-                .requestMatchers("/resource/*").hasRole("ADMIN")
+                .requestMatchers("/resource/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .requestCache(requestCache -> requestCache

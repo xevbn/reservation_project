@@ -18,7 +18,9 @@ import com.example.reservation.user.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class AuthService {
@@ -47,6 +49,8 @@ public class AuthService {
 
         AuthInfo authInfo = getAuthInfo(user);
         LoginResponse res = new LoginResponse(accessToken, refreshToken, authInfo);
+
+        log.info("Auth [로그인] - userId: {}", user.getId());
 
         return res;
     }
@@ -79,9 +83,9 @@ public class AuthService {
     @Transactional
     //로그 아웃 시 리프레시 토큰 삭제
     public void logout(String refreshToken) {
-        System.out.println("로그아웃 호출됨: " + refreshToken);
-
+        Long userId = jwtProvider.getUserId(refreshToken);
         refreshTokenService.deleteByRefreshToken(refreshToken);
+        log.info("Auth [로그아웃] - userId: {}", userId);
     }
 
     public AuthInfo getAuthInfo(User user) {

@@ -3,6 +3,9 @@ package com.example.reservation.reservation;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.example.reservation.resource.Resource;
 import com.example.reservation.user.User;
 
@@ -28,5 +31,12 @@ public class Reservation {
     @JoinColumn(name="user_id", nullable=false)
     User user;
     @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="resource_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     Resource resource;
+
+    public String getReservationTime() {
+        String time = this.date.toString() + ":" + this.startTime.toString() + this.endTime.toString();
+        return time;
+    }
 }
