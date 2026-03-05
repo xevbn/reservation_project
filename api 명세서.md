@@ -366,8 +366,7 @@ Body = event:timeslots
     "resourceList" : {
        {
            "id": 1,
-           "name": "resourceName",
-           "docname": "name"
+           "name": "resourceName"
        }
     }
 }
@@ -385,21 +384,15 @@ Body = event:timeslots
 #### request
 ```json
 {
-    "name": "newResource",
-    "docname": "newName"
+    "name": "newResource"
 }
 ```
 
-#### response (204 NO CONTENT)
+#### response (200 OK)
 ```json
 {
-    "resourceList" : {
-       {
-           "id": 2,
-           "name": "newResource",
-           "docname": "newName"
-       }
-    }
+    "id": 1,
+    "name": "resourceName"
 }
 ```
 
@@ -426,8 +419,7 @@ Body = event:timeslots
 #### request
 ```json
 {
-    "name": "editResource",
-    "docname": "editName"
+    "name": "editResource"
 }
 ```
 

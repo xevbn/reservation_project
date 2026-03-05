@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 
 
 
+
 @RestController
 @RequestMapping("/resource")
 @AllArgsConstructor
@@ -43,10 +44,10 @@ public class ResourceController {
     }
     
     @PostMapping("/add")
-    public ResponseEntity<?> addResource(@RequestBody Resource resource) {
-        resourceService.addResource(resource);
+    public ResponseEntity<?> addResource(@RequestBody String resourceName) {
+        Resource saved = resourceService.addResource(resourceName);
         
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(saved.toString());
     }
 
     @DeleteMapping("/{id}/delete")
@@ -57,10 +58,19 @@ public class ResourceController {
     }
     
     @PutMapping("/{id}/edit")
-    public ResponseEntity<?> editResource(@PathVariable String id, @RequestBody Resource resource) throws JsonProcessingException {
-        Resource edited = resourceService.editResource(resource);
+    public ResponseEntity<?> editResource(@PathVariable Long id, @RequestBody Resource resource) throws JsonProcessingException {
+        Resource edited = resourceService.editResource(id, resource);
         
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
             .body(objectMapper.writeValueAsString(edited));
     }
+
+    @GetMapping("/{id}/reservations")
+    public ResponseEntity<?> existReservation(@PathVariable Long id) throws JsonProcessingException {
+        boolean exist = resourceService.reservationExists(id);
+        String body = objectMapper.writeValueAsString(Map.of("exist", exist));  
+
+        return ResponseEntity.ok(body);
+    }
+    
 }

@@ -105,5 +105,4 @@ public class ReservationController {
 
         return sseEmitter;
     }
-    
 }

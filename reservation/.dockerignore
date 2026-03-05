@@ -1,0 +1,8 @@
+target/
+pom.xml.*
+release.properties
+.git/
+.gitignore
+.vscode/
+Dockerfile
+docker-compose.yml

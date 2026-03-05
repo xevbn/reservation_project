@@ -20,7 +20,6 @@ import com.example.reservation.user.UserDto;
 import lombok.AllArgsConstructor;
 
 
-
 @RestController
 @AllArgsConstructor
 public class AuthController {
