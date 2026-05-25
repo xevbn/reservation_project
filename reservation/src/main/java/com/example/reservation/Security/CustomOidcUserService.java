@@ -5,15 +5,16 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.Security.principal.CustomPrincipal;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class CustomOidcUserService extends OidcUserService {
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
 
     @Override
     public OidcUser loadUser(OidcUserRequest oidcUserRequest) {
@@ -38,7 +39,8 @@ public class CustomOidcUserService extends OidcUserService {
 
                 return userRepository.save(newUser);
             });
+        CustomUserDetails userDetails = new CustomUserDetails(user);
 
-        return new CustomPrincipal(user, oidcUser.getAttributes(), oidcUser.getIdToken(), oidcUser.getUserInfo());
+        return new CustomPrincipal(userDetails, oidcUser.getAttributes(), oidcUser.getIdToken(), oidcUser.getUserInfo());
     }
 }

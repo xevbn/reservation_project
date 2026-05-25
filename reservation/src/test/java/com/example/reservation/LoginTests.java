@@ -26,9 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.jwt.RefreshTokenRepository;
-import com.example.reservation.user.UserDto;
-import com.example.reservation.user.UserService;
+import com.example.reservation.Security.jwt.RefreshTokenRepository;
+import com.example.reservation.application.user.UserService;
+import com.example.reservation.user.presentation.dto.UserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

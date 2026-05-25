@@ -24,9 +24,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.user.UserDto;
-import com.example.reservation.user.UserService;
+import com.example.reservation.Security.jwt.JwtProvider;
+import com.example.reservation.application.user.UserService;
+import com.example.reservation.user.presentation.dto.UserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

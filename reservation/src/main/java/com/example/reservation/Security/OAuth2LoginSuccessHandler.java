@@ -6,9 +6,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.jwt.RefreshTokenService;
-import com.example.reservation.user.User;
+import com.example.reservation.Security.jwt.JwtProvider;
+import com.example.reservation.Security.jwt.RefreshTokenService;
+import com.example.reservation.Security.principal.CustomPrincipal;
+import com.example.reservation.infrastructure.user.User;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -31,7 +32,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             User user = oAuth2User.getUser();
 
-            String accessToken = jwtProvider.createToken(user);
+            String accessToken = jwtProvider.createToken(user.getId());
             String refreshToken = refreshTokenService.generateRefreshToken(user);
 
             Cookie cookie = new Cookie("refresh_token", refreshToken);

@@ -17,9 +17,9 @@ import org.springframework.security.core.Authentication;
 
 import com.example.reservation.Security.CustomOAuth2User;
 import com.example.reservation.Security.OAuth2LoginSuccessHandler;
-import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.jwt.RefreshTokenRepository;
-import com.example.reservation.user.User;
+import com.example.reservation.Security.jwt.JwtProvider;
+import com.example.reservation.Security.jwt.RefreshTokenRepository;
+import com.example.reservation.infrastructure.user.User;
 
 @ExtendWith(MockitoExtension.class)
 public class OAuth2LoginSuccessHandlerTest {

@@ -22,13 +22,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.reservation.reservation.Reservation;
-import com.example.reservation.reservation.ReservationDto;
-import com.example.reservation.reservation.ReservationService;
-import com.example.reservation.resource.Resource;
-import com.example.reservation.resource.ResourceRepository;
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.application.reservation.ReservationService;
+import com.example.reservation.infrastructure.reservation.Reservation;
+import com.example.reservation.infrastructure.resource.Resource;
+import com.example.reservation.infrastructure.resource.ResourceJpaRepository;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserJpaRepository;
+import com.example.reservation.presentation.reservation.ReservationDto;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -37,11 +37,11 @@ import jakarta.persistence.EntityNotFoundException;
 @DirtiesContext
 public class ReservationServiceTest {
     @Autowired
-    UserRepository userRepository;
+    UserJpaRepository userRepository;
     @Autowired
     ReservationService reservationService;
     @Autowired
-    ResourceRepository resourceRepository;
+    ResourceJpaRepository resourceRepository;
     String resourceName;
 
     Long id;

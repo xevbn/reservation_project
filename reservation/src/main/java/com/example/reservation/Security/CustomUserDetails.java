@@ -7,7 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.example.reservation.user.User;
+import com.example.reservation.infrastructure.user.User;
 
 import lombok.AllArgsConstructor;
 
@@ -33,5 +33,13 @@ public class CustomUserDetails implements UserDetails {
 
     public String getEmail() {
         return user.getEmail();
+    }
+
+    public Long getId() {
+        return user.getId();
+    }
+
+    public User getUser() {
+        return this.user;
     }
 }

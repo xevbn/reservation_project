@@ -27,13 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.reservation.ReservationDto;
-import com.example.reservation.reservation.ReservationResponse;
-import com.example.reservation.reservation.ReservationService;
-import com.example.reservation.resource.Resource;
-import com.example.reservation.resource.ResourceRepository;
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.application.reservation.ReservationService;
+import com.example.reservation.infrastructure.resource.Resource;
+import com.example.reservation.infrastructure.resource.ResourceJpaRepository;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserJpaRepository;
+import com.example.reservation.presentation.reservation.ReservationDto;
+import com.example.reservation.reservation.presentation.dto.ReservationResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -46,9 +46,9 @@ public class ReservationControllerTest {
     @Autowired
     ReservationService reservationService;
     @Autowired
-    UserRepository userRepository;
+    UserJpaRepository userRepository;
     @Autowired
-    ResourceRepository resourceRepository;
+    ResourceJpaRepository resourceRepository;
     private String resourceName;
     @Autowired
     MockMvc mvc;

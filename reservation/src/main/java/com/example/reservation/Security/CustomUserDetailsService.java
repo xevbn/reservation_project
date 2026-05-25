@@ -7,15 +7,15 @@ import org.springframework.stereotype.Service;
 
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserJpaRepository;
 
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

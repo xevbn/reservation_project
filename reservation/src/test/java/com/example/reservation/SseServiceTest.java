@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import com.example.reservation.reservation.SseService;
+import com.example.reservation.application.reservation.SseService;
 
 @SpringBootTest
 public class SseServiceTest {

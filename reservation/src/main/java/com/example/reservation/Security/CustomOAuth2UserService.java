@@ -9,15 +9,16 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.Security.principal.CustomPrincipal;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserJpaRepository;
 
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-    private final UserRepository userRepository;
+    private final UserJpaRepository userRepository;
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = new DefaultOAuth2UserService().loadUser(userRequest);
@@ -55,8 +56,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
                 return userRepository.save(newUser);
             });
+        CustomUserDetails userDetails = new CustomUserDetails(user);
 
-        return new CustomPrincipal(user, oAuth2User.getAttributes(), null, null);
+        return new CustomPrincipal(userDetails, oAuth2User.getAttributes(), null, null);
     }
     
 }

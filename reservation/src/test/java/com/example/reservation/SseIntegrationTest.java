@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.reservation.SseService;
+import com.example.reservation.application.reservation.SseService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest

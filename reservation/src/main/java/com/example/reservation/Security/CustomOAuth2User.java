@@ -6,7 +6,7 @@ import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.example.reservation.user.User;
+import com.example.reservation.infrastructure.user.User;
 
 import lombok.AllArgsConstructor;
 
