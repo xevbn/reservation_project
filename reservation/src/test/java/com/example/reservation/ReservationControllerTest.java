@@ -49,7 +49,7 @@ public class ReservationControllerTest {
     UserRepository userRepository;
     @Autowired
     ResourceRepository resourceRepository;
-    private String resourceName;
+    private Long resourceId;
     @Autowired
     MockMvc mvc;
     public static ObjectMapper objectMapper = new ObjectMapper();
@@ -80,14 +80,14 @@ public class ReservationControllerTest {
         makeAuth(0);
         Resource resource = new Resource("room1");
         resourceRepository.save(resource);
-        resourceName = resource.getName();
+        resourceId = resource.getId();
 
         LocalDate date = LocalDate.now();
         ReservationDto dto = new ReservationDto(
             date,
             LocalTime.of(15, 0),
             LocalTime.of(16, 0),
-            resourceName
+            resourceId
             
         );
 
@@ -97,7 +97,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(17, 0),
             LocalTime.of(18, 0),
-            resourceName
+            resourceId
         );
         reservationService.makeReservation(dto2);
     }
@@ -109,7 +109,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(15, 0),
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -128,7 +128,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(13, 0),
             LocalTime.of(14, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -148,7 +148,7 @@ public class ReservationControllerTest {
             date,
             start,
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -168,7 +168,7 @@ public class ReservationControllerTest {
             date.plusDays(2),
             LocalTime.of(12, 0),
             LocalTime.of(13, 0),
-            resourceName
+            resourceId
         );
 
         String editRequest = objectMapper.writeValueAsString(change);
@@ -193,7 +193,7 @@ public class ReservationControllerTest {
             date,
             start,
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -235,7 +235,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(15, 0),
             LocalTime.of(16, 0),
-            resourceName
+            resourceId
         );
         String requestBody = objectMapper.writeValueAsString(dto);
 
@@ -267,7 +267,7 @@ public class ReservationControllerTest {
             date,
             start,
             LocalTime.of(16, 0),
-            resourceName
+            resourceId
         );
         String request = objectMapper.writeValueAsString(change);
 
@@ -319,5 +319,15 @@ public class ReservationControllerTest {
             new TypeReference<Map<String, Boolean>>() {});
 
         assertThat(occupied.get("15:00-16:00") == true);
+    }
+
+    @Test
+    public void getUsersReservations() throws Exception {
+        MvcResult rs = mvc.perform(get("/reservation/detail"))
+            .andExpect(status().isOk())
+            .andDo(print())
+            .andReturn();
+
+        
     }
 }

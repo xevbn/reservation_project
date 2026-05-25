@@ -2,11 +2,13 @@ package com.example.reservation.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +21,9 @@ import com.example.reservation.user.UserService;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @Transactional
@@ -27,7 +31,7 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final UserService userService;
     private final ResourceRepository resourceRepository;
-    private final SseService sseService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     //예약 작성
     public Reservation makeReservation(ReservationDto reservationDto) {
@@ -38,17 +42,20 @@ public class ReservationService {
         LocalDate date = reservationDto.getDate();
         LocalTime start = reservationDto.getStartTime();
         LocalTime end = reservationDto.getEndTime();
+        String reservationTime = date.toString() + "|" + start.toString() + end.toString();
+        
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.findByUsername(username)
+            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        log.info("Reservation [생성 시도] - user: {}, resource: {}, time: {}", user.getId(), resource.getId(), reservationTime);
 
         //중복된 예약이 있을 시
         boolean overlaps = reservationRepository.existsOverlap(resource, start, end, date);
         if(overlaps) {
+            log.warn("Reservation [중복 발생] - 이미 점유된 시간대입니다");
             throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
-        
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        System.out.println(username);
-        User user = userService.findByUsername(username)
-            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         Reservation newReservation = new Reservation();
 
@@ -59,9 +66,8 @@ public class ReservationService {
         newReservation.setResource(resource);
 
         Reservation reserved = reservationRepository.save(newReservation);
-
-        Map<String, Boolean> occupied = getReservedList(date, resource.getId());
-        sseService.sendUpdate(date, resource.getId(), occupied);
+        publishUpdate("ADD", date, resourceId);
+        log.info("Reservation [생성 완료] - ID : {}", reserved.getId());
 
         return reserved;
     }
@@ -94,11 +100,14 @@ public class ReservationService {
             throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
+        publishUpdate("DELETE", reservation.getDate(), reservation.getResource().getId());
         reservationRepository.deleteById(id);
+        log.info("Reservation [삭제] - id: {}", id);
     }
 
     //예약 변경
-    public void changeReservation(Long id, ReservationDto reservationDto) {
+    public Reservation changeReservation(Long id, ReservationDto reservationDto) {
+        log.info("Reservation [변경 시도] - id: {}", id);
         Long resourceId = reservationDto.getResourceId();
         Resource resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
@@ -109,11 +118,15 @@ public class ReservationService {
 
         Reservation reservation = reservationRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+        String prevTime = reservation.getReservationTime();
 
         //작성자와 현재 사용자 일치 확인
         if (!user.equals(reservation.getUser())) {
             throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
+
+        LocalDate prevDate = reservation.getDate();
+        Long prevResourceId = reservation.getResource().getId();
 
         LocalDate newDate = reservationDto.getDate();
         LocalTime newStartTime = reservationDto.getStartTime();
@@ -135,6 +148,13 @@ public class ReservationService {
         reservation.setDate(newDate);
         reservation.setStartTime(newStartTime);
         reservation.setEndTime(newEndTime);
+
+        publishUpdate("DELETE", prevDate, prevResourceId);
+        publishUpdate("ADD", newDate, resourceId);
+
+        log.info("Reservation [변경 성공] - id: {}, from: {}, to: {}", id, prevTime, reservation.getReservationTime());
+
+        return reservation;
     }
 
     //전체 예약 리스트 반환
@@ -183,5 +203,12 @@ public class ReservationService {
         }
 
         return timeList;
+    }
+
+    public void publishUpdate(String action, LocalDate date, Long resourceId) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-DD");
+        String payLoad = String.format("{\"action\":\"%s\",\"date\":\"%s\",\"resourceId\":%d}",
+            action, date.format(formatter), resourceId);
+        redisTemplate.convertAndSend("SLOT_UPDATE", payLoad);
     }
 }

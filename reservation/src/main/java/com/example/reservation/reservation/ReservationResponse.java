@@ -16,7 +16,7 @@ public class ReservationResponse {
     private LocalTime startTime;
     private LocalTime endTime;
     private String username;
-    private String resourceName;
+    private long resourceId;
 
     public ReservationResponse(Reservation reservation) {
         this.id = reservation.getId();
@@ -24,6 +24,6 @@ public class ReservationResponse {
         this.startTime = reservation.getStartTime();
         this.endTime = reservation.getEndTime();
         this.username = reservation.getUser().getUsername();
-        this.resourceName = reservation.getResource().getName();
+        this.resourceId = reservation.getResource().getId();
     }
 }
