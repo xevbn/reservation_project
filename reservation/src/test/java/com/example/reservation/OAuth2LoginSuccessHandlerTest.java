@@ -18,16 +18,12 @@ import org.springframework.security.core.Authentication;
 import com.example.reservation.Security.CustomOAuth2User;
 import com.example.reservation.Security.OAuth2LoginSuccessHandler;
 import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.jwt.RefreshTokenRepository;
 import com.example.reservation.user.User;
 
 @ExtendWith(MockitoExtension.class)
 public class OAuth2LoginSuccessHandlerTest {
     @Mock
     JwtProvider jwtProvider;
-
-    @Mock
-    RefreshTokenRepository refreshTokenRepository;
 
     @InjectMocks
     OAuth2LoginSuccessHandler handler;

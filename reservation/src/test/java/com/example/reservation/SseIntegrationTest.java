@@ -50,7 +50,7 @@ public class SseIntegrationTest {
         assertEquals(1, service.getEmitters().get(key).size());
 
         AtomicReference<Object> received = new AtomicReference<>();
-        service.sendUpdate(date, id, "DATA");
+        service.sendUpdate(id, "DATA");
 
         Thread.sleep(100);
 
