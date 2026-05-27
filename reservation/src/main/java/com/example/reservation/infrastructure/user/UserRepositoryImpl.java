@@ -6,6 +6,8 @@ import java.util.stream.StreamSupport;
 import org.springframework.stereotype.Repository;
 
 import com.example.reservation.application.user.UserRepository;
+import com.example.reservation.common.BusinessException;
+import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.user.UserDomain;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,7 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public UserDomain findById(Long id) {
     User user = jpaRepository.findById(id)
-      .orElse(null);
+      .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
     return UserMapper.toDomain(user);
   }
@@ -34,7 +36,7 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public UserDomain findByUsername(String username) {
     User user = jpaRepository.findByUsername(username)
-      .orElse(null);
+      .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
     return UserMapper.toDomain(user);
   }
@@ -42,7 +44,7 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public UserDomain findByProviderAndProviderId(String provider, String providerId) {
     User user = jpaRepository.findByProviderAndProviderId(provider, providerId)
-      .orElse(null);
+      .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
     return UserMapper.toDomain(user);
   }

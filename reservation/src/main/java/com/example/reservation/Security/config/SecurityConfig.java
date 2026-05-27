@@ -17,12 +17,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.example.reservation.Security.CustomOAuth2UserService;
-import com.example.reservation.Security.CustomOidcUserService;
-import com.example.reservation.Security.CustomUserDetailsService;
-import com.example.reservation.Security.OAuth2LoginSuccessHandler;
 import com.example.reservation.Security.jwt.JwtAuthorizationFilter;
 import com.example.reservation.Security.jwt.JwtProvider;
+import com.example.reservation.Security.oauth2.CustomOAuth2UserService;
+import com.example.reservation.Security.oauth2.OAuth2LoginSuccessHandler;
+import com.example.reservation.Security.oidc.CustomOidcUserService;
+import com.example.reservation.Security.service.CustomUserDetailsService;
 
 import lombok.AllArgsConstructor;
 

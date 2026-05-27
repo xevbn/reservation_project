@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.reservation.domain.resource.ResourceDomain;
 
-@Repository
 public interface ResourceRepository {
   public ResourceDomain save(ResourceDomain domain);
   public List<ResourceDomain> findAll();

@@ -100,7 +100,7 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(
-            Map.of("Authorization", "Bearer " + authService.getAccessToken(res.getUser()))
+            Map.of("Authorization", "Bearer " + authService.getAccessToken(res.getUser().getId()))
         );
     }
 }

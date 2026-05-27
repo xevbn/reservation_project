@@ -4,13 +4,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.reservation.Security.jwt.JwtProvider;
-import com.example.reservation.Security.jwt.RefreshToken;
-import com.example.reservation.Security.jwt.RefreshTokenService;
+import com.example.reservation.Security.jwt.refreshToken.RefreshTokenService;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.user.UserDomain;
 import com.example.reservation.presentation.user.dto.AuthResponse;
-import com.example.reservation.presentation.user.dto.LoginRequest;
 import com.example.reservation.presentation.user.dto.LoginResponse;
 
 import lombok.AllArgsConstructor;
@@ -23,9 +21,9 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final CurrentUserport currentUserport;
 
-    public LoginResponse login(LoginRequest req) {
+    public LoginResponse login(String username, String password) {
         //사용자 조회
-        UserDomain user = userService.findByUsername(req.getUsername());
+        UserDomain user = userService.findByUsername(username);
 
         //액세스 토큰 및 리프레시 토큰 발급
         String accessToken = jwtProvider.createToken(user.getId());
@@ -44,18 +42,18 @@ public class AuthService {
 
         //리프레시 토큰에서 userId 가져와 DB와 비교
         Long userId = jwtProvider.getUserId(refreshToken);
-        RefreshToken stored = refreshTokenService.getRefreshTokenByUserId(userId);
+        String stored = refreshTokenService.getRefreshTokenByUserId(userId);
 
         UserDomain user = userService.findById(userId);
 
         //리프레시 토큰이 동일하지 않을 시 에러 반환
-        if(!stored.getRefreshToken().equals(refreshToken)) {
+        if(!stored.equals(refreshToken)) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
 
         //새로운 토큰 발급
         String newAccessToken = jwtProvider.createToken(user.getId());
-        String newRefreshToken = refreshTokenService.UpdateRefreshToken(user);
+        String newRefreshToken = refreshTokenService.UpdateRefreshToken(user.getId());
 
         LoginResponse res = new LoginResponse(newAccessToken, newRefreshToken, user);
 
@@ -88,7 +86,7 @@ public class AuthService {
     }
 
     //액세스 토큰 발급
-    public String getAccessToken(UserDomain user) {
-        return jwtProvider.createToken(user.getId());
+    public String getAccessToken(Long userId) {
+        return jwtProvider.createToken(userId);
     }
 }

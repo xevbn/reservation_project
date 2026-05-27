@@ -33,7 +33,7 @@ import com.example.reservation.infrastructure.resource.ResourceJpaRepository;
 import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.infrastructure.user.UserJpaRepository;
 import com.example.reservation.presentation.reservation.ReservationDto;
-import com.example.reservation.reservation.presentation.dto.ReservationResponse;
+import com.example.reservation.presentation.reservation.dto.ReservationResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -53,7 +53,7 @@ public class ReservationControllerTest {
     @Autowired
     MockMvc mvc;
     public static ObjectMapper objectMapper = new ObjectMapper();
-
+    Long resourceId;
     Long id;
 
     public void makeAuth(int num) {
@@ -79,7 +79,7 @@ public class ReservationControllerTest {
     public void setUp() {
         makeAuth(0);
         Resource resource = new Resource("room1");
-        resourceRepository.save(resource);
+        resourceId = resourceRepository.save(resource).getId();
         resourceName = resource.getName();
 
         LocalDate date = LocalDate.now();
@@ -87,19 +87,30 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(15, 0),
             LocalTime.of(16, 0),
-            resourceName
-            
+            resourceId
         );
 
-        id = reservationService.makeReservation(dto).getId();
+        id = reservationService.makeReservation(
+            date,
+            dto.getStartTime(),
+            dto.getEndTime(),
+            id,
+            resourceId
+        ).getId();
 
         ReservationDto dto2 = new ReservationDto(
             date,
             LocalTime.of(17, 0),
             LocalTime.of(18, 0),
-            resourceName
+            resourceId
         );
-        reservationService.makeReservation(dto2);
+        reservationService.makeReservation(
+            date,
+            dto2.getStartTime(),
+            dto2.getEndTime(),
+            id,
+            resourceId
+        );
     }
 
     @Test
@@ -109,7 +120,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(15, 0),
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -128,7 +139,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(13, 0),
             LocalTime.of(14, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -148,7 +159,7 @@ public class ReservationControllerTest {
             date,
             start,
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -168,7 +179,7 @@ public class ReservationControllerTest {
             date.plusDays(2),
             LocalTime.of(12, 0),
             LocalTime.of(13, 0),
-            resourceName
+            resourceId
         );
 
         String editRequest = objectMapper.writeValueAsString(change);
@@ -193,7 +204,7 @@ public class ReservationControllerTest {
             date,
             start,
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
 
         String requestBody = objectMapper.writeValueAsString(dto);
@@ -235,7 +246,7 @@ public class ReservationControllerTest {
             date,
             LocalTime.of(15, 0),
             LocalTime.of(16, 0),
-            resourceName
+            resourceId
         );
         String requestBody = objectMapper.writeValueAsString(dto);
 
@@ -267,7 +278,7 @@ public class ReservationControllerTest {
             date,
             start,
             LocalTime.of(16, 0),
-            resourceName
+            resourceId
         );
         String request = objectMapper.writeValueAsString(change);
 

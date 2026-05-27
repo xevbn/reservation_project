@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.Security.oauth2;
 
 import java.util.Map;
 
@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import com.example.reservation.Security.principal.CustomPrincipal;
+import com.example.reservation.Security.principal.CustomUserDetails;
 import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.infrastructure.user.UserJpaRepository;
 

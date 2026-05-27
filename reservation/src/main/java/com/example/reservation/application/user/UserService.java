@@ -42,6 +42,10 @@ public class UserService {
 
     //회원가입
     public UserDomain registration(String email, String username, String password) {
+        if(userRepository.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+
         UserDomain domain = UserDomain.builder()
             .email(email)
             .username(username)

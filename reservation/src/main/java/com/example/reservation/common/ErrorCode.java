@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 //오류 코드
 public enum ErrorCode {
-    USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "사용자를 찾을 수 없습니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다."),
     UNAUTHORIZED_USER(HttpStatus.FORBIDDEN, "권한이 없습니다."),
     DUPLICATE_RESERVATION(HttpStatus.CONFLICT, "이미 예약된 시간입니다."),
@@ -12,7 +12,9 @@ public enum ErrorCode {
     NO_CHANGE_FOUND(HttpStatus.BAD_REQUEST, "변경 사항이 없습니다."),
     NOT_SAME_USER(HttpStatus.UNAUTHORIZED, "작성자가 아닙니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 만료되었습니다."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효한 토큰이 아닙니다.");
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효한 토큰이 아닙니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "리프레시 토큰을 찾을 수 없습니다."),
+    EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 이메일입니다.");
 
 
     private final HttpStatus status;

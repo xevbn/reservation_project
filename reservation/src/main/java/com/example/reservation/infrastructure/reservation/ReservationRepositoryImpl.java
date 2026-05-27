@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Repository;
+
 import com.example.reservation.application.reservation.ReservationRepository;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
@@ -16,6 +18,7 @@ import com.example.reservation.infrastructure.user.UserJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
+@Repository
 @RequiredArgsConstructor
 public class ReservationRepositoryImpl implements ReservationRepository {
   private final ReservationJpaRepository jpaRepository;

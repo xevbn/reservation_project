@@ -42,8 +42,8 @@ public class ResourceController {
     }
     
     @PostMapping("/add")
-    public ResponseEntity<?> addResource(@RequestBody ResourceDto dto) {
-        resourceService.addResource(dto.getName());
+    public ResponseEntity<?> addResource(@RequestBody String name) {
+        resourceService.addResource(name);
         
         return ResponseEntity.ok().build();
     }

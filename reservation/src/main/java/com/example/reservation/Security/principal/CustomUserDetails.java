@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.Security.principal;
 
 import java.util.Collection;
 import java.util.Collections;

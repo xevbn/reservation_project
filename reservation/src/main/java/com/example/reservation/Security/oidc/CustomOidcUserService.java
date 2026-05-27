@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.Security.oidc;
 
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 import com.example.reservation.Security.principal.CustomPrincipal;
+import com.example.reservation.Security.principal.CustomUserDetails;
 import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.infrastructure.user.UserJpaRepository;
 

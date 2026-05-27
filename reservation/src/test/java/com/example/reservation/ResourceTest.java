@@ -23,9 +23,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.reservation.application.resource.ResourceService;
 import com.example.reservation.application.user.UserService;
+import com.example.reservation.domain.resource.ResourceDomain;
 import com.example.reservation.infrastructure.resource.Resource;
 import com.example.reservation.infrastructure.resource.ResourceJpaRepository;
-import com.example.reservation.user.presentation.dto.UserDto;
+import com.example.reservation.presentation.resource.dto.ResourceDto;
+import com.example.reservation.presentation.user.dto.UserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,26 +48,22 @@ public class ResourceTest {
     @BeforeEach
     public void setUp() {
         UserDto userDto = new UserDto("admin", "passwd", "email");
-        userService.registrationForAdmin(userDto);
+        userService.registrationForAdmin(
+            "email",
+            "admin",
+            "password"
+        );
 
-        Resource resource = new Resource();
-        resource.setName("room1");
-        resource.setDocname("name1");
-
-        resourceService.addResource(resource);
+        resourceService.addResource("room1");
     }
 
     @Test
-    public void addResource() throws Exception{
-        Resource newResource = new Resource();
-        newResource.setName("room2");
-        newResource.setDocname("name2");
-
+    public void addResource() throws Exception {;
         assertNotNull(mvc);
 
         mvc.perform(post("/resource/add")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(newResource)))
+            .content(objectMapper.writeValueAsString("newResource")))
             .andExpect(status().isOk());
     }
 
@@ -83,10 +81,7 @@ public class ResourceTest {
 
     @Test
     public void deleteResource() throws Exception {
-        Resource newResource = new Resource();
-        newResource.setName("delete");
-        newResource.setDocname("deleted");
-        Long id = resourceService.addResource(newResource).getId();
+        Long id = resourceService.addResource("newResource").getId();
 
         mvc.perform(delete("/resource/" + id + "/delete"))
             .andExpect(status().isNoContent());
@@ -94,14 +89,10 @@ public class ResourceTest {
 
     @Test
     public void editResource() throws Exception {
-        Resource newResource = new Resource();
-        newResource.setName("asdf");
-        newResource.setDocname("asdf");
-        Long id = resourceService.addResource(newResource).getId();
+        Long id = resourceService.addResource("newResource").getId();
 
         Resource edit = new Resource();
         edit.setName("new");
-        edit.setDocname("docname");
 
         MvcResult rs = mvc.perform(put("/resource/" + id.toString() + "/edit")
             .contentType(MediaType.APPLICATION_JSON)

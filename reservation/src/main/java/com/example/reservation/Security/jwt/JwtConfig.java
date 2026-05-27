@@ -18,11 +18,11 @@ public class JwtConfig {
         return Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
 
-    public Long getExpiry() {
+    public static Long getExpiry() {
         return expireTime;
     }
 
-    public Long getRefreshExpiry() {
+    public static Long getRefreshExpiry() {
         return refreshExpire;
     }
 }

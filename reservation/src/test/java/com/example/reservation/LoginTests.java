@@ -17,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
+
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -26,15 +28,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.Security.jwt.RefreshTokenRepository;
+import com.example.reservation.Security.jwt.refreshToken.RefreshTokenRepository;
 import com.example.reservation.application.user.UserService;
-import com.example.reservation.user.presentation.dto.UserDto;
+import com.example.reservation.presentation.user.dto.LoginRequest;
+import com.example.reservation.presentation.user.dto.UserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest()
 @AutoConfigureMockMvc
 @WithMockUser(username = "test")
+@ActiveProfiles("test")
 public class LoginTests {
     @Autowired
     MockMvc mvc;
@@ -50,14 +54,13 @@ public class LoginTests {
 
     @Test
     public void LoginWithNonExistingUser() throws Exception {
-        UserDto dto = new UserDto("user", "passwd", "email");
+        LoginRequest dto = new LoginRequest("non_existing_user", "password");
 
         mvc.perform(
             post("/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
-            .andExpect(status().isNotFound())
-            .andExpect(redirectedUrl("/login?error"));
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -68,14 +71,13 @@ public class LoginTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk())
-            .andExpect(redirectedUrl("/login"))
             .andDo(print());
     }
 
     @Test
     public void LoginWithExistingUser() throws Exception {
-        UserDto dto = new UserDto("test", "password", "email");
-        userService.registration(dto);
+        LoginRequest dto = new LoginRequest("test", "password");
+        userService.registration("email", "test", "password");
 
         MvcResult res = mvc.perform(
             post("/login")
@@ -93,8 +95,7 @@ public class LoginTests {
 
     @Test
     public void getUserDetailInfo() throws Exception {
-        UserDto dto = new UserDto("test", "password", "email");
-        userService.registration(dto);
+        userService.registration("email", "test", "password");
 
         MvcResult res = mvc.perform(get("/user_detail"))
             .andExpect(status().isOk())
@@ -133,11 +134,8 @@ public class LoginTests {
 
     @Test
     void checkDuplicateEmail() throws Exception {
-        UserDto dto = new UserDto("test", "password", "email");
-        userService.registration(dto);
-        
-        UserDto dto2 = new UserDto("test2", "password", "email2");
-        userService.registration(dto2);
+        userService.registration("email", "test", "password");
+        userService.registration("email2", "test2", "password2");
 
         System.out.println(String.valueOf(userService.checkEmailDuplication("email")));
 
@@ -152,7 +150,8 @@ public class LoginTests {
     @Test
     public void logout() throws Exception{
         UserDto dto = new UserDto("test", "password", "email");
-        userService.registration(dto);
+        Long id =userService.registration("email", "test", "password")
+            .getId();
 
         mvc.perform(
             post("/login")
@@ -160,12 +159,12 @@ public class LoginTests {
                 .content(objectMapper.writeValueAsString(dto)))
             .andExpect(status().isOk());
 
-        assertThat(!refreshTokenRepository.findAll().isEmpty());
+        assertThat(refreshTokenRepository.findByUserId(id).isPresent());
 
         mvc.perform(get("/logout"))
             .andDo(print())
             .andExpect(status().is3xxRedirection());
         
-        assertThat(refreshTokenRepository.findAll().isEmpty());
+        assertThat(!refreshTokenRepository.findByUserId(id).isPresent());
     }
 }

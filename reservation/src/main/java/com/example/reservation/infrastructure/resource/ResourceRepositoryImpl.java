@@ -3,13 +3,14 @@ package com.example.reservation.infrastructure.resource;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.stereotype.Repository;
+
 import com.example.reservation.application.resource.ResourceRepository;
-import com.example.reservation.common.BusinessException;
-import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.resource.ResourceDomain;
 
 import lombok.RequiredArgsConstructor;
 
+@Repository
 @RequiredArgsConstructor
 public class ResourceRepositoryImpl implements ResourceRepository {
   private final ResourceJpaRepository jpaRepository;

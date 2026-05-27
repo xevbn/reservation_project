@@ -23,6 +23,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.reservation.application.reservation.ReservationService;
+import com.example.reservation.domain.reservation.ReservationDomain;
 import com.example.reservation.infrastructure.reservation.Reservation;
 import com.example.reservation.infrastructure.resource.Resource;
 import com.example.reservation.infrastructure.resource.ResourceJpaRepository;
@@ -42,7 +43,7 @@ public class ReservationServiceTest {
     ReservationService reservationService;
     @Autowired
     ResourceJpaRepository resourceRepository;
-    String resourceName;
+    Long resourceId;
 
     Long id;
 
@@ -67,7 +68,7 @@ public class ReservationServiceTest {
     public void setUp() {
         Resource resource = new Resource("room13");
         resourceRepository.saveAndFlush(resource);
-        resourceName = resource.getName();
+        resourceId = resource.getId();
 
         makeAuth(10);
     }
@@ -87,9 +88,15 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
-        reservationService.makeReservation(reservDto);
+        reservationService.makeReservation(
+            date,
+            reservDto.getStartTime(),
+            reservDto.getEndTime(),
+            id,
+            resourceId
+        );
 
         assertThat(reservationService.findAll()).hasSize(1);
     }
@@ -101,18 +108,30 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
-        reservationService.makeReservation(reservDto);
+        reservationService.makeReservation(
+            date,
+            reservDto.getStartTime(),
+            reservDto.getEndTime(),
+            id,
+            resourceId
+        );
 
         ReservationDto reservationDto = new ReservationDto();
         reservationDto.setDate(date);
         reservationDto.setStartTime(LocalTime.of(16, 00));
         reservationDto.setEndTime(LocalTime.of(18, 00));
-        reservationDto.setResourceName(resourceName);
+        reservationDto.setResourceId(resourceId);
 
         assertThrows(IllegalStateException.class,
-            () -> reservationService.makeReservation(reservationDto));
+            () -> reservationService.makeReservation(
+                date,
+                reservationDto.getStartTime(),
+                reservationDto.getEndTime(),
+                id,
+                resourceId
+            ));
     }
 
     //이런 방식의 테스트는 맞지만 h2 환경에서는 부적합 - 테스트 불가
@@ -123,7 +142,7 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(18, 0));
         reservDto.setEndTime(LocalTime.of(19, 0));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         int threadCount = 5;
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -134,7 +153,13 @@ public class ReservationServiceTest {
             executorService.submit(() -> {
                 try {
                     makeAuth(num);
-                    reservationService.makeReservation(reservDto);
+                    reservationService.makeReservation(
+                        reservDto.getDate(),
+                        reservDto.getStartTime(),
+                        reservDto.getEndTime(),
+                        id,
+                        reservDto.getResourceId()
+                    );  
                     System.out.println("스레드 " + num + "예약 성공");
                 } catch (Exception e) {
                     System.out.println("예약 실패 : " + e.getMessage());
@@ -144,8 +169,8 @@ public class ReservationServiceTest {
             });
         }
 
-        List<Reservation> reservList = new ArrayList<>();
-        reservationService.findAll().forEach(reservList::add);
+        List<ReservationDomain> reservList = new ArrayList<>();
+        reservationService.findAll().stream().forEach(reservList::add);  
         
         assertThat(reservList).hasSize(1);
     }
@@ -167,9 +192,15 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
-        Long reservId = reservationService.makeReservation(reservDto).getId();
+        Long reservId = reservationService.makeReservation(
+            date,
+            reservDto.getStartTime(),
+            reservDto.getEndTime(),
+            id,
+            resourceId
+        ).getId();
 
         reservationService.cancelReservation(reservId);
 
@@ -183,9 +214,15 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
-        Long thisReservId = reservationService.makeReservation(reservDto).getId();
+        Long thisReservId = reservationService.makeReservation(
+            reservDto.getDate(),
+            reservDto.getStartTime(),
+            reservDto.getEndTime(),
+            id,
+            resourceId
+        ).getId();
 
         makeAuth(12);
         assertThrows(EntityNotFoundException.class,
@@ -199,10 +236,10 @@ public class ReservationServiceTest {
         reservDto.setDate(date);
         reservDto.setStartTime(LocalTime.of(16, 00));
         reservDto.setEndTime(LocalTime.of(17, 00));
-        reservDto.setResourceName(resourceName);
+        reservDto.setResourceId(resourceId);
 
         assertThrows(EntityNotFoundException.class,
-            () -> reservationService.changeReservation(id, reservDto));
+            () -> reservationService.changeReservation(id, resourceId, date, reservDto.getStartTime(), reservDto.getEndTime()));
     }
 
     @Test
@@ -214,27 +251,39 @@ public class ReservationServiceTest {
         ReservationDto dto1 = new ReservationDto(date,
             LocalTime.of(16, 0),
             LocalTime.of(17, 0),
-            resourceName
+            resourceId
         );
-        Reservation r1 = reservationService.makeReservation(dto1);
+        ReservationDomain r1 = reservationService.makeReservation(
+            date,
+            dto1.getStartTime(),
+            dto1.getEndTime(),
+            id,
+            resourceId
+        );
 
         // 2번 예약 17-18
         ReservationDto dto2 = new ReservationDto(date,
             LocalTime.of(17, 0),
             LocalTime.of(18, 0),
-            resourceName
+            resourceId
         );
-        Reservation r2 = reservationService.makeReservation(dto2);
+        ReservationDomain r2 = reservationService.makeReservation(
+            date,
+            dto2.getStartTime(),
+            dto2.getEndTime(),
+            id,
+            resourceId
+        );
 
         // 2번 예약을 16-19로 변경 시도
         ReservationDto changeDto = new ReservationDto(date,
             LocalTime.of(16, 0),
             LocalTime.of(19, 0),
-            resourceName
+            resourceId
         );
 
         assertThrows(IllegalStateException.class, () -> {
-            reservationService.changeReservation(r2.getId(), changeDto);
+            reservationService.changeReservation(r2.getId(), resourceId, date, changeDto.getStartTime(), changeDto.getEndTime());
         });
     }
 
@@ -244,20 +293,26 @@ public class ReservationServiceTest {
         LocalDate date = LocalDate.now().plusDays(1);
         LocalTime start = LocalTime.of(16, 00);
         LocalTime end = LocalTime.of(17, 00);
-        ReservationDto dto = new ReservationDto(date, start, end, resourceName);
+        ReservationDto dto = new ReservationDto(date, start, end, resourceId);
 
-        Long reservId = reservationService.makeReservation(dto).getId();
+        Long reservId = reservationService.makeReservation(
+            date,
+            start,
+            end,
+            id,
+            resourceId
+        ).getId();
 
         ReservationDto change = new ReservationDto(
             date,
             LocalTime.of(18, 0),
             LocalTime.of(19, 0),
-            resourceName
+            resourceId
         );
 
-        reservationService.changeReservation(reservId, dto);
+        reservationService.changeReservation(reservId, resourceId, date, change.getStartTime(), change.getEndTime());
         
-        Reservation reservation = reservationService.findAll().iterator().next();
+        ReservationDomain reservation = reservationService.findAll().iterator().next();
         assertThat(reservation.getStartTime().equals(LocalTime.of(18, 0)) &&
             reservation.getEndTime().equals(LocalTime.of(19, 0)));
     }
@@ -268,9 +323,15 @@ public class ReservationServiceTest {
         LocalDate date = LocalDate.now().plusDays(1);
         LocalTime start = LocalTime.of(16, 00);
         LocalTime end =  LocalTime.of(17, 00);
-        ReservationDto dto = new ReservationDto(date, start, end, resourceName);
+        ReservationDto dto = new ReservationDto(date, start, end, resourceId);
 
-        Long anotherUsersReservId = reservationService.makeReservation(dto).getId();
+        Long anotherUsersReservId = reservationService.makeReservation(
+            date,
+            start,
+            end,
+            id,
+            resourceId
+        ).getId();
 
         makeAuth(11);
 
@@ -278,10 +339,10 @@ public class ReservationServiceTest {
             date,
             LocalTime.of(18, 0),
             LocalTime.of(19, 0),
-            resourceName
+            resourceId
         );
 
         assertThrows(EntityNotFoundException.class,
-            () -> reservationService.changeReservation(anotherUsersReservId, change));
+            () -> reservationService.changeReservation(anotherUsersReservId, resourceId, date, change.getStartTime(), change.getEndTime()));
     }
 }

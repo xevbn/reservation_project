@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import com.example.reservation.Security.CustomUserDetails;
+import com.example.reservation.Security.principal.CustomUserDetails;
 import com.example.reservation.application.reservation.ReservationService;
 import com.example.reservation.application.reservation.SseService;
 import com.example.reservation.common.BusinessException;

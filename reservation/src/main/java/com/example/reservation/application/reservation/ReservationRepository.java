@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.reservation.domain.reservation.ReservationDomain;
 
-@Repository
 public interface ReservationRepository {
 	public ReservationDomain save(ReservationDomain domain);
 	public List<ReservationDomain> findAll();

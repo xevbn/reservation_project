@@ -1,18 +1,14 @@
 package com.example.reservation;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.reservation.Security.jwt.JwtProvider;
 import com.example.reservation.application.user.UserService;
-import com.example.reservation.user.presentation.dto.UserDto;
+import com.example.reservation.presentation.user.dto.UserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,6 +34,7 @@ import okhttp3.mockwebserver.MockWebServer;
 @SpringBootTest()
 @AutoConfigureMockMvc
 @Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 //@WithMockUser(username="test", roles={"USER"})
 public class JwtProviderTest {
     @Autowired
@@ -49,15 +46,10 @@ public class JwtProviderTest {
     ObjectMapper objectMapper;
     static MockWebServer mockWebServer;
 
-    @BeforeEach
-    void setUp() {
-        UserDto dto = new UserDto("user", "passwd", "email");
-        userService.registration(dto);
-        objectMapper = new ObjectMapper();
-    }
-
     @BeforeAll
-    public static void beforeAll() throws IOException {
+    public void beforeAll() throws IOException {
+        userService.registration("email", "username", "password");
+        objectMapper = new ObjectMapper();
         mockWebServer = new MockWebServer();
         mockWebServer.start();
     }
