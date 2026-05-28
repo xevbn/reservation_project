@@ -1,4 +1,4 @@
-package com.example.reservation.reservation;
+package com.example.reservation.presentation.resservation;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,8 +20,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.example.reservation.application.reservation.ReservationService;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
+import com.example.reservation.domain.ReservationDomain;
+import com.example.reservation.presentation.resservation.dto.ReservationDto;
+import com.example.reservation.presentation.resservation.dto.ReservationResponse;
+import com.example.reservation.reservation.SseService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -54,7 +60,15 @@ public class ReservationController {
     //예약 추가
     @PostMapping("/{date}")
     public ResponseEntity<?> makeReservation(@PathVariable LocalDate date, @RequestBody ReservationDto reservationDto) {
-        ReservationResponse resBody = new ReservationResponse(reservationService.makeReservation(reservationDto));
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        
+        ReservationResponse resBody = new ReservationResponse(reservationService.makeReservation(
+            date,
+            reservationDto.getStartTime(),
+            reservationDto.getEndTime(),
+            userId,
+            reservationDto.getResourceId()
+        ));
 
         return ResponseEntity.ok(resBody);
     }
@@ -62,8 +76,7 @@ public class ReservationController {
     //해당 예약 정보 접근 엔드포인트
     @GetMapping("/{id}/detail")
     public ResponseEntity<?> getReservationDetail(@PathVariable String id) {
-        Reservation reservation = reservationService.getReservationById(Long.valueOf(id))
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+        ReservationDomain reservation = reservationService.getReservationById(Long.valueOf(id));
 
         ReservationResponse reservationResponse = new ReservationResponse(reservation);
 
@@ -74,7 +87,8 @@ public class ReservationController {
     //해당 예약 취소
     @DeleteMapping("/{id}/detail")
     public ResponseEntity<?> cancelReservation(@PathVariable Long id) {
-        reservationService.cancelReservation(id);
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        reservationService.cancelReservation(id, userId);
 
         return ResponseEntity.status(HttpStatusCode.valueOf(204)).build();
     }
@@ -82,7 +96,15 @@ public class ReservationController {
     //예약 내역 수정
     @PutMapping("/{id}/detail")
     public ResponseEntity<?> changeReservation(@PathVariable Long id, @RequestBody ReservationDto reservationDto) {
-        reservationService.changeReservation(id, reservationDto);
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        reservationService.changeReservation(
+            id,
+            reservationDto.getDate(),
+            reservationDto.getStartTime(),
+            reservationDto.getEndTime(),
+            reservationDto.getResourceId(),
+            userId
+        );
 
         return ResponseEntity.status(HttpStatusCode.valueOf(204)).build();
     }
@@ -90,7 +112,8 @@ public class ReservationController {
     //해당 사용자의 예약 사항 리턴
     @GetMapping("/detail")
     public ResponseEntity<?> getUsersReservations() {
-        List<ReservationResponse> resBody =  reservationService.findReservationByUser()
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        List<ReservationResponse> resBody =  reservationService.findReservationByUser(userId)
             .stream()
             .map(ReservationResponse::new)
             .toList();
@@ -100,7 +123,7 @@ public class ReservationController {
 
     //해당 일자 및 리소스에 대한 시간대 점유 여부 sse 구독 엔드포인트
     @GetMapping(value="/sse/subscribe", produces=MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe( @PathParam(value="userId") Long userId) throws JsonProcessingException {
+    public SseEmitter subscribe(@PathParam(value="userId") Long userId) throws JsonProcessingException {
         SseEmitter sseEmitter = sseService.subscribe(userId);
 
         return sseEmitter;

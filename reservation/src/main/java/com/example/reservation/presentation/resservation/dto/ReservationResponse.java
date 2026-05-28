@@ -1,7 +1,9 @@
-package com.example.reservation.reservation;
+package com.example.reservation.presentation.resservation.dto;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.example.reservation.domain.ReservationDomain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,15 +17,15 @@ public class ReservationResponse {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private String username;
+    private long username;
     private long resourceId;
 
-    public ReservationResponse(Reservation reservation) {
+    public ReservationResponse(ReservationDomain reservation) {
         this.id = reservation.getId();
         this.date = reservation.getDate();
         this.startTime = reservation.getStartTime();
         this.endTime = reservation.getEndTime();
-        this.username = reservation.getUser().getUsername();
-        this.resourceId = reservation.getResource().getId();
+        this.username = reservation.getUserId();
+        this.resourceId = reservation.getResourceId();
     }
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
-import com.example.reservation.user.User;
+import com.example.reservation.infrastructure.user.User;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

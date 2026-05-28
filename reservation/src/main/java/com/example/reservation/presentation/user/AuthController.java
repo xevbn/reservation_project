@@ -1,4 +1,4 @@
-package com.example.reservation.auth;
+package com.example.reservation.presentation.user;
 
 import java.util.Map;
 
@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.reservation.application.user.AuthService;
 import com.example.reservation.jwt.JwtConfig;
-import com.example.reservation.user.UserDto;
+import com.example.reservation.presentation.user.dto.AuthResponse;
+import com.example.reservation.presentation.user.dto.LoginRequest;
+import com.example.reservation.presentation.user.dto.LoginResponse;
+import com.example.reservation.presentation.user.dto.UserDto;
 
 import lombok.AllArgsConstructor;
 
@@ -29,7 +33,7 @@ public class AuthController {
     //로그인 요청
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        LoginResponse res = authService.login(req);
+        LoginResponse res = authService.login(req.getUsername(), req.getPassword());
 
         //리프레시 토큰을 httponly 쿠키에 추가
         ResponseCookie cookie = ResponseCookie.from("refreshToken", res.getRefreshToken())

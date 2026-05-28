@@ -6,11 +6,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.example.reservation.auth.AuthInfo;
+import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.jwt.JwtConfig;
 import com.example.reservation.jwt.JwtProvider;
 import com.example.reservation.jwt.RefreshTokenService;
-import com.example.reservation.user.User;
+import com.example.reservation.presentation.user.dto.AuthInfo;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

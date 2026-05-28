@@ -1,6 +1,6 @@
-package com.example.reservation.auth;
+package com.example.reservation.presentation.user.dto;
 
-import com.example.reservation.user.User;
+import com.example.reservation.infrastructure.user.User;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

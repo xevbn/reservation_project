@@ -1,4 +1,4 @@
-package com.example.reservation.user;
+package com.example.reservation.infrastructure.user;
 
 import java.util.Optional;
 

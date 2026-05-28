@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserRepository;
 
 import lombok.AllArgsConstructor;
 

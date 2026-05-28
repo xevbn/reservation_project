@@ -1,4 +1,4 @@
-package com.example.reservation.auth;
+package com.example.reservation.application.user;
 
 import java.util.Map;
 
@@ -10,11 +10,14 @@ import org.springframework.stereotype.Service;
 import com.example.reservation.Security.CustomPrincipal;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
+import com.example.reservation.domain.UserDomain;
+import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.jwt.JwtProvider;
 import com.example.reservation.jwt.JwtService;
 import com.example.reservation.jwt.RefreshTokenService;
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserService;
+import com.example.reservation.presentation.user.dto.AuthInfo;
+import com.example.reservation.presentation.user.dto.AuthResponse;
+import com.example.reservation.presentation.user.dto.LoginResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -24,24 +27,20 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @AllArgsConstructor
 public class AuthService {
-    private final AuthenticationManager authManager;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
     private final JwtProvider jwtProvider;
     private final JwtService jwtService;
 
-    public LoginResponse login(LoginRequest req) {
-        String username = req.getUsername();
-        String password = req.getPassword();
-
+    public LoginResponse login(String username, String password) {
         //사용자 조회
-        User user = userService.findByUsername(req.getUsername())
+        UserDomain user = userRepository.findByUsername(username)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         
         //securityContextHolder 세팅
-        Authentication auth = authManager.authenticate(
-            new UsernamePasswordAuthenticationToken(username, password)
-        );
+        // Authentication auth = authManager.authenticate(
+        //     new UsernamePasswordAuthenticationToken(username, password)
+        // );
 
         //액세스 토큰 및 리프레시 토큰 발급
         String accessToken = jwtProvider.createToken(user);
@@ -88,7 +87,7 @@ public class AuthService {
         log.info("Auth [로그아웃] - userId: {}", userId);
     }
 
-    public AuthInfo getAuthInfo(User user) {
+    public AuthInfo getAuthInfo(UserDomain user) {
         return new AuthInfo(user.getId(), user.getUserRole());
     }
 }

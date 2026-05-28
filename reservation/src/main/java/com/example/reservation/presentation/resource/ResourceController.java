@@ -1,4 +1,4 @@
-package com.example.reservation.resource;
+package com.example.reservation.presentation.resource;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.reservation.application.resource.ResourceService;
+import com.example.reservation.domain.ResourceDomain;
+import com.example.reservation.infrastructure.resource.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -58,8 +61,8 @@ public class ResourceController {
     }
     
     @PutMapping("/{id}/edit")
-    public ResponseEntity<?> editResource(@PathVariable Long id, @RequestBody Resource resource) throws JsonProcessingException {
-        Resource edited = resourceService.editResource(id, resource);
+    public ResponseEntity<?> editResource(@PathVariable Long id, @RequestBody String newName) throws JsonProcessingException {
+        ResourceDomain edited = resourceService.editResource(id, newName);
         
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
             .body(objectMapper.writeValueAsString(edited));

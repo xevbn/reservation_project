@@ -1,4 +1,4 @@
-package com.example.reservation.reservation;
+package com.example.reservation.infrastructure.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.example.reservation.resource.Resource;
-import com.example.reservation.user.User;
+import com.example.reservation.infrastructure.resource.Resource;
+import com.example.reservation.infrastructure.user.User;
 
 import jakarta.persistence.Version;
 import jakarta.transaction.Transactional;
