@@ -1,10 +1,10 @@
-package com.example.reservation.resource;
+package com.example.reservation.infrastructure.resource;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.example.reservation.reservation.Reservation;
+import com.example.reservation.infrastructure.reservation.Reservation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

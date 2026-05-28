@@ -9,8 +9,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserRepository;
+import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.user.UserRepository;
 
 import lombok.AllArgsConstructor;
 

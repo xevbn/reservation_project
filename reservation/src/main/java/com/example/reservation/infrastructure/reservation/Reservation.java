@@ -1,4 +1,4 @@
-package com.example.reservation.reservation;
+package com.example.reservation.infrastructure.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -6,8 +6,8 @@ import java.time.LocalTime;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import com.example.reservation.resource.Resource;
-import com.example.reservation.user.User;
+import com.example.reservation.infrastructure.resource.Resource;
+import com.example.reservation.infrastructure.user.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

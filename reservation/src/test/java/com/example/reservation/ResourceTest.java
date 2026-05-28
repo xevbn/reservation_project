@@ -21,11 +21,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.resource.Resource;
-import com.example.reservation.resource.ResourceRepository;
-import com.example.reservation.resource.ResourceService;
-import com.example.reservation.user.UserDto;
-import com.example.reservation.user.UserService;
+import com.example.reservation.application.resource.ResourceService;
+import com.example.reservation.application.user.UserService;
+import com.example.reservation.infrastructure.resource.Resource;
+import com.example.reservation.infrastructure.resource.ResourceRepository;
+import com.example.reservation.presentation.user.dto.UserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

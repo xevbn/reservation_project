@@ -1,4 +1,4 @@
-package com.example.reservation.reservation;
+package com.example.reservation.application.reservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,60 +12,61 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.example.reservation.application.resource.ResourceRepository;
+import com.example.reservation.application.user.UserRepository;
+import com.example.reservation.application.user.UserService;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
-import com.example.reservation.resource.Resource;
-import com.example.reservation.resource.ResourceRepository;
-import com.example.reservation.user.User;
-import com.example.reservation.user.UserService;
+import com.example.reservation.domain.ReservationDomain;
+import com.example.reservation.domain.ResourceDomain;
+import com.example.reservation.domain.UserDomain;
+import com.example.reservation.infrastructure.reservation.Reservation;
+import com.example.reservation.infrastructure.resource.Resource;
+import com.example.reservation.presentation.resservation.dto.ReservationDto;
 
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class ReservationService {
     private final ReservationRepository reservationRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final ResourceRepository resourceRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     //예약 작성
-    public Reservation makeReservation(ReservationDto reservationDto) {
-        Long resourceId = reservationDto.getResourceId();
-        Resource resource = resourceRepository.findById(resourceId)
+    public ReservationDomain makeReservation(LocalDate date, LocalTime start, LocalTime end, long resourceId, long userId) {
+        ResourceDomain resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
             
-        LocalDate date = reservationDto.getDate();
-        LocalTime start = reservationDto.getStartTime();
-        LocalTime end = reservationDto.getEndTime();
         String reservationTime = date.toString() + "|" + start.toString() + end.toString();
         
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.findByUsername(username)
+        UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        log.info("Reservation [생성 시도] - user: {}, resource: {}, time: {}", user.getId(), resource.getId(), reservationTime);
+        log.info("Reservation [생성 시도] - user: {}, resource: {}, time: {}", userId, resourceId, reservationTime);
 
         //중복된 예약이 있을 시
-        boolean overlaps = reservationRepository.existsOverlap(resource, start, end, date);
+        boolean overlaps = reservationRepository.existsOverlap(resourceId, start, end, date);
         if(overlaps) {
             log.warn("Reservation [중복 발생] - 이미 점유된 시간대입니다");
             throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
 
-        Reservation newReservation = new Reservation();
+        ReservationDomain newReservation = new ReservationDomain(
+            date,
+            start,
+            end,
+            resourceId,
+            user.getId()
+        );
 
-        newReservation.setDate(date);
-        newReservation.setStartTime(start);
-        newReservation.setEndTime(end);
-        newReservation.setUser(user);
-        newReservation.setResource(resource);
-
-        Reservation reserved = reservationRepository.save(newReservation);
+        ReservationDomain reserved = reservationRepository.save(newReservation);
         publishUpdate("ADD", date, resourceId);
         log.info("Reservation [생성 완료] - ID : {}", reserved.getId());
 
@@ -73,81 +74,74 @@ public class ReservationService {
     }
 
     //일별 예약
-    public List<Reservation> findReservationByDate(LocalDate date) {
+    public List<ReservationDomain> findReservationByDate(LocalDate date) {
         return reservationRepository.findByDate(date);
     }
 
     //사용자 별 예약 확인
-    public List<Reservation> findReservationByUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.findByUsername(username)
+    public List<ReservationDomain> findReservationByUser(long userId) {
+        UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        return reservationRepository.findByUser(user);
+        return reservationRepository.findByUserId(user.getId());
     }
 
     //예약 취소
-    public void cancelReservation(Long id) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.findByUsername(username)
+    public void cancelReservation(Long id, Long userId) {
+        UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Reservation reservation = reservationRepository.findById(id)
+        ReservationDomain reservation = reservationRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         
         //작성자와 현재 사용자 일치 확인
-        if (!user.equals(reservation.getUser())) {
+        if (userId != reservation.getUserId()) {
             throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
-        publishUpdate("DELETE", reservation.getDate(), reservation.getResource().getId());
+        publishUpdate("DELETE", reservation.getDate(), reservation.getResourceId());
         reservationRepository.deleteById(id);
         log.info("Reservation [삭제] - id: {}", id);
     }
 
     //예약 변경
-    public Reservation changeReservation(Long id, ReservationDto reservationDto) {
+    public ReservationDomain changeReservation(Long id, LocalDate newDate, LocalTime newStart, LocalTime newEnd, 
+        Long resourceId, Long userId) {
         log.info("Reservation [변경 시도] - id: {}", id);
-        Long resourceId = reservationDto.getResourceId();
-        Resource resource = resourceRepository.findById(resourceId)
+        ResourceDomain resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.findByUsername(username)
+        UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Reservation reservation = reservationRepository.findById(id)
+        ReservationDomain reservation = reservationRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
         String prevTime = reservation.getReservationTime();
 
         //작성자와 현재 사용자 일치 확인
-        if (!user.equals(reservation.getUser())) {
+        if (userId != reservation.getUserId()) {
             throw new BusinessException(ErrorCode.NOT_SAME_USER);
         }
 
         LocalDate prevDate = reservation.getDate();
-        Long prevResourceId = reservation.getResource().getId();
-
-        LocalDate newDate = reservationDto.getDate();
-        LocalTime newStartTime = reservationDto.getStartTime();
-        LocalTime newEndTime = reservationDto.getEndTime();
+        Long prevResourceId = reservation.getResourceId();
 
         //변경 사항이 없을 때는 예외 발생
         if (reservation.getDate().isEqual(newDate) && 
-            reservation.getStartTime().equals(newStartTime) &&
-            reservation.getEndTime().equals(newEndTime)) {
+            reservation.getStartTime().equals(newStart) &&
+            reservation.getEndTime().equals(newEnd)) {
                 throw new BusinessException(ErrorCode.NO_CHANGE_FOUND);
             }
 
-        boolean overlaps = reservationRepository.existsOverlap(resource, newStartTime, newEndTime, newDate);
+        boolean overlaps = reservationRepository.existsOverlap(resourceId, newStart, newEnd, newDate);
 
         if(overlaps) {
             throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
         }
         
-        reservation.setDate(newDate);
-        reservation.setStartTime(newStartTime);
-        reservation.setEndTime(newEndTime);
+        reservation.changeDate(newDate);
+        reservation.changeStartTime(newStart);
+        reservation.changeEndTime(newEnd);
 
         publishUpdate("DELETE", prevDate, prevResourceId);
         publishUpdate("ADD", newDate, resourceId);
@@ -158,7 +152,7 @@ public class ReservationService {
     }
 
     //전체 예약 리스트 반환
-    public Iterable<Reservation> findAll() {
+    public List<ReservationDomain> findAll() {
         return reservationRepository.findAll();
     }
 
@@ -169,29 +163,30 @@ public class ReservationService {
 
     //일자 및 리소스 id를 통해 예약 리스트 반환
     //이거 도대체 왜 있음????? 반환 없는데???
-    public void getReservationsByDateAndResourceId(LocalDate date, Long resourceId) {
-        Resource resource = resourceRepository.findById(resourceId)
+    public List<ReservationDomain> getReservationsByDateAndResourceId(LocalDate date, Long resourceId) {
+        ResourceDomain resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
-        List<Reservation> reservations = reservationRepository.findByDateAndResource(date, resource);
+        List<ReservationDomain> reservations = reservationRepository.findByDateAndResourceId(date, resourceId);
 
-        
+        return reservations;
     }
 
     //id를 통해 해당 예약에 접근
-    public Optional<Reservation> getReservationById(Long id) {
-        return reservationRepository.findById(id);
+    public ReservationDomain getReservationById(Long id) {
+        return reservationRepository.findById(id)
+            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
     }
 
     //해당 시간대가 점유 중임을 확인하기 위한 시간대-부울 반환
     public Map<String, Boolean> getReservedList(LocalDate date, Long resourceId) {
-        Resource resource = resourceRepository.findById(resourceId)
+        ResourceDomain resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        List<Reservation> reserved = reservationRepository.findByDateAndResource(date, resource);
+        List<ReservationDomain> reserved = reservationRepository.findByDateAndResourceId(date, resourceId);
 
         List<LocalTime> reservedTime;
         reservedTime = reserved.stream()
-                .map(Reservation::getStartTime)
+                .map(ReservationDomain::getStartTime)
                 .toList();
         
         Map<String, Boolean> timeList = new TreeMap<>();

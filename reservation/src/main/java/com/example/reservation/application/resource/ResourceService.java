@@ -1,4 +1,4 @@
-package com.example.reservation.resource;
+package com.example.reservation.application.resource;
 
 import java.util.Optional;
 
@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
+import com.example.reservation.domain.ResourceDomain;
+import com.example.reservation.infrastructure.resource.Resource;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +39,10 @@ public class ResourceService {
         resourceRepository.deleteById(id);
     }
 
-    public Resource editResource(Long id, Resource editResource) {
-        Resource edit = resourceRepository.findById(id)
+    public ResourceDomain editResource(Long id, String newName) {
+        ResourceDomain edit = resourceRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
-        edit.edit(editResource);
+        edit.changeName(newName);
 
         log.info("Resource [수정] - id: {}", id);
 
@@ -48,7 +50,7 @@ public class ResourceService {
     }
 
     public boolean reservationExists(Long id) {
-        Resource resource = resourceRepository.findById(id)
+        ResourceDomain resource = resourceRepository.findById(id)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
         return (!resource.getReservations().isEmpty());

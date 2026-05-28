@@ -1,4 +1,4 @@
-package com.example.reservation.auth;
+package com.example.reservation.presentation.user.dto;
 
 import java.util.Map;
 

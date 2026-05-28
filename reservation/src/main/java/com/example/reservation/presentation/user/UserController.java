@@ -1,4 +1,4 @@
-package com.example.reservation.user;
+package com.example.reservation.presentation.user;
 
 import java.util.Map;
 
@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.reservation.application.user.UserService;
+import com.example.reservation.presentation.user.dto.UserDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.AllArgsConstructor;
@@ -30,7 +32,7 @@ public class UserController {
     //회원가입
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
-        userService.registration(userDto);
+        userService.registration(userDto.getEmail(), userDto.getUsername(), userDto.getPassword());
         
         return ResponseEntity.ok(Map.of("message", "회원가입 성공"));
     }
