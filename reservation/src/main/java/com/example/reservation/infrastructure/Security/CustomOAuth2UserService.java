@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.infrastructure.Security;
 
 import java.util.Map;
 
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.infrastructure.user.UserRepository;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
     private final UserRepository userRepository;
     @Override

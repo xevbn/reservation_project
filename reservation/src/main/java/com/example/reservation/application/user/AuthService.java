@@ -7,25 +7,25 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.Security.CustomPrincipal;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.UserDomain;
+import com.example.reservation.infrastructure.Security.CustomPrincipal;
+import com.example.reservation.infrastructure.jwt.JwtProvider;
+import com.example.reservation.infrastructure.jwt.JwtService;
+import com.example.reservation.infrastructure.jwt.RefreshTokenService;
 import com.example.reservation.infrastructure.user.User;
-import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.jwt.JwtService;
-import com.example.reservation.jwt.RefreshTokenService;
 import com.example.reservation.presentation.user.dto.AuthInfo;
 import com.example.reservation.presentation.user.dto.AuthResponse;
 import com.example.reservation.presentation.user.dto.LoginResponse;
 
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
@@ -43,8 +43,8 @@ public class AuthService {
         // );
 
         //액세스 토큰 및 리프레시 토큰 발급
-        String accessToken = jwtProvider.createToken(user);
-        String refreshToken = refreshTokenService.generateRefreshToken(user);
+        String accessToken = jwtProvider.createToken(user.getId());
+        String refreshToken = refreshTokenService.generateRefreshToken(user.getId());
 
         AuthInfo authInfo = getAuthInfo(user);
         LoginResponse res = new LoginResponse(accessToken, refreshToken, authInfo);

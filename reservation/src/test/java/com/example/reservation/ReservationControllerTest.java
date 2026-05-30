@@ -27,13 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.application.reservation.ReservationService;
-import com.example.reservation.infrastructure.resource.Resource;
-import com.example.reservation.infrastructure.resource.ResourceRepository;
-import com.example.reservation.infrastructure.user.User;
-import com.example.reservation.infrastructure.user.UserRepository;
-import com.example.reservation.presentation.resservation.dto.ReservationDto;
-import com.example.reservation.presentation.resservation.dto.ReservationResponse;
+import com.example.reservation.reservation.ReservationDto;
+import com.example.reservation.reservation.ReservationResponse;
+import com.example.reservation.reservation.ReservationService;
+import com.example.reservation.resource.Resource;
+import com.example.reservation.resource.ResourceRepository;
+import com.example.reservation.user.User;
+import com.example.reservation.user.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

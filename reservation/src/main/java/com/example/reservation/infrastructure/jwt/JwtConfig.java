@@ -1,4 +1,4 @@
-package com.example.reservation.jwt;
+package com.example.reservation.infrastructure.jwt;
 
 import javax.crypto.SecretKey;
 
@@ -18,15 +18,15 @@ public class JwtConfig {
         return Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
 
-    public Long getExpiry() {
+    public static Long getExpiry() {
         return expireTime;
     }
 
-    public Long getRefreshExpiry() {
+    public static Long getRefreshExpiry() {
         return refreshExpire;
     }
 
-    public int getRefreshExpirySec() {
+    public static int getRefreshExpirySec() {
         return refreshExpire.intValue() / 1000;
     }
 }

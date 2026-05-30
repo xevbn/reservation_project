@@ -1,4 +1,4 @@
-package com.example.reservation.redis;
+package com.example.reservation.infrastructure.redis;
 
 import java.time.Duration;
 

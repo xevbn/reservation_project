@@ -15,10 +15,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 
-import com.example.reservation.Security.CustomOAuth2User;
-import com.example.reservation.Security.OAuth2LoginSuccessHandler;
-import com.example.reservation.infrastructure.user.User;
+import com.example.reservation.infrastructure.Security.CustomOAuth2User;
+import com.example.reservation.infrastructure.Security.OAuth2LoginSuccessHandler;
 import com.example.reservation.jwt.JwtProvider;
+import com.example.reservation.user.User;
 
 @ExtendWith(MockitoExtension.class)
 public class OAuth2LoginSuccessHandlerTest {

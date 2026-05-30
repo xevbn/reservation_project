@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.infrastructure.Security;
 
 import java.util.Collection;
 import java.util.Map;
@@ -10,10 +10,11 @@ import com.example.reservation.infrastructure.user.User;
 
 import lombok.AllArgsConstructor;
 
+
 @AllArgsConstructor
 public class CustomOAuth2User implements OAuth2User {
-    private final User user;
-    private final Map<String, Object> attributes;
+    private User user;
+    private Map<String, Object> attributes;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

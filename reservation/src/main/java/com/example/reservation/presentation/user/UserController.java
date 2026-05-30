@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +41,8 @@ public class UserController {
     //사용자 상세 정보
     @GetMapping("/user_detail")
     public ResponseEntity<?> userDetails() throws Exception{
-        UserDto userDto = userService.detailUserInfo();
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        UserDto userDto = userService.detailUserInfo(userId);
 
         String body = objectMapper.writeValueAsString(userDto);
         return ResponseEntity.ok(body);
@@ -49,7 +51,8 @@ public class UserController {
     //회원탈퇴
     @DeleteMapping("/user_detail/delete") 
     public ResponseEntity<?> deleteUser() {
-        userService.deleteUser();
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        userService.deleteUser(userId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
             .body(Map.of("message", "회원탈퇴 성공"));
@@ -58,7 +61,8 @@ public class UserController {
     //사용자 정보 변경
     @PutMapping("/user_detail/edit")
     public ResponseEntity<?> userDetailEdit(@RequestBody UserDto userDto) {
-        userService.editUser(userDto);
+        Long userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof Long id ? id : null;
+        userService.editUser(userId, userDto.getUsername(), userDto.getPassword());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
             .body(Map.of("message", "변경 성공"));

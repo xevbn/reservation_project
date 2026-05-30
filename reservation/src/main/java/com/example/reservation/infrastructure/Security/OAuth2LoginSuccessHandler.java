@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.infrastructure.Security;
 
 import java.io.IOException;
 
@@ -6,10 +6,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.example.reservation.infrastructure.jwt.JwtConfig;
+import com.example.reservation.infrastructure.jwt.JwtProvider;
+import com.example.reservation.infrastructure.jwt.RefreshTokenService;
 import com.example.reservation.infrastructure.user.User;
-import com.example.reservation.jwt.JwtConfig;
-import com.example.reservation.jwt.JwtProvider;
-import com.example.reservation.jwt.RefreshTokenService;
 import com.example.reservation.presentation.user.dto.AuthInfo;
 
 import jakarta.servlet.ServletException;
@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
-    private final JwtConfig jwtConfig;
 
     //oauth2 로그인 성공 시 jwt 토큰 발급
     @Override
@@ -34,14 +33,14 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             User user = oAuth2User.getUser();
 
-            String accessToken = jwtProvider.createToken(user);
-            String refreshToken = refreshTokenService.generateRefreshToken(user);
+            String accessToken = jwtProvider.createToken(user.getId());
+            String refreshToken = refreshTokenService.generateRefreshToken(user.getId());
 
             Cookie cookie = new Cookie("refreshToken", refreshToken);
             cookie.setHttpOnly(true);
             cookie.setSecure(true);
             cookie.setPath("/");
-            cookie.setMaxAge(jwtConfig.getRefreshExpirySec());
+            cookie.setMaxAge(JwtConfig.getRefreshExpirySec());
             res.addCookie(cookie);
 
             AuthInfo userInfo = new AuthInfo(user.getId(), user.getUserRole());

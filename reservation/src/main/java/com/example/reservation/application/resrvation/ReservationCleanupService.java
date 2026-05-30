@@ -1,11 +1,10 @@
-package com.example.reservation.reservation;
+package com.example.reservation.application.resrvation;
 
 import java.time.LocalDate;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.example.reservation.infrastructure.reservation.ReservationRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;

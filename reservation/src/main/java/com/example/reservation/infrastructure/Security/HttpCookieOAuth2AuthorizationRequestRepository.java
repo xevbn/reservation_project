@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.infrastructure.Security;
 
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;

@@ -1,4 +1,4 @@
-package com.example.reservation.presentation.resservation;
+package com.example.reservation.presentation.reservation;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -21,10 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.example.reservation.application.reservation.ReservationService;
+import com.example.reservation.application.resource.ResourceService;
 import com.example.reservation.application.resrvation.SseService;
+import com.example.reservation.common.BusinessException;
+import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.ReservationDomain;
-import com.example.reservation.presentation.resservation.dto.ReservationDto;
-import com.example.reservation.presentation.resservation.dto.ReservationResponse;
+import com.example.reservation.presentation.reservation.dto.ReservationDto;
+import com.example.reservation.presentation.reservation.dto.ReservationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

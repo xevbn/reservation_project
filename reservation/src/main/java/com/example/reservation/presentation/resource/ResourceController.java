@@ -2,8 +2,6 @@ package com.example.reservation.presentation.resource;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.reservation.application.resource.ResourceService;
 import com.example.reservation.domain.ResourceDomain;
-import com.example.reservation.infrastructure.resource.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,18 +34,16 @@ public class ResourceController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getResourcesList() {
-        Iterable<Resource> resourceIterable = resourceService.getAllResources();
-        List<Resource> resourcesList = StreamSupport.stream(resourceIterable.spliterator(), false)
-            .collect(Collectors.toList());
+        List<ResourceDomain> resourcesList = resourceService.getAllResources();;
         
-        Map<String, List<Resource>> body = Map.of("resourceList", resourcesList);
+        Map<String, List<ResourceDomain>> body = Map.of("resourceList", resourcesList);
 
         return ResponseEntity.ok(body);
     }
     
     @PostMapping("/add")
     public ResponseEntity<?> addResource(@RequestBody String resourceName) {
-        Resource saved = resourceService.addResource(resourceName);
+        ResourceDomain saved = resourceService.addResource(resourceName);
         
         return ResponseEntity.ok(saved.toString());
     }

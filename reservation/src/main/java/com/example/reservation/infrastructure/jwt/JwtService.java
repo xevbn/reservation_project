@@ -1,4 +1,4 @@
-package com.example.reservation.jwt;
+package com.example.reservation.infrastructure.jwt;
 
 import java.util.Map;
 
@@ -24,11 +24,9 @@ public class JwtService {
         }
         
         Long userId = jwtProvider.getUserId(refreshToken);
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        String newAccessToken = jwtProvider.createToken(user);
-        String newRefreshToken = refreshTokenService.UpdateRefreshToken(user, refreshToken);
+        String newAccessToken = jwtProvider.createToken(userId);
+        String newRefreshToken = refreshTokenService.UpdateRefreshToken(userId, refreshToken);
 
         return Map.of("accessToken", newAccessToken, 
             "refreshToken", newRefreshToken);

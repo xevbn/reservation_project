@@ -1,4 +1,4 @@
-package com.example.reservation.redis;
+package com.example.reservation.infrastructure.redis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +13,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import com.example.reservation.reservation.SseService;
+import com.example.reservation.application.resrvation.SseService;
 
 //레디스 설정 정보
 @Configuration

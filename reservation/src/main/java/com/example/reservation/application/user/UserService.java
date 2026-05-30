@@ -3,7 +3,6 @@ package com.example.reservation.application.user;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.UserDomain;
-import com.example.reservation.infrastructure.user.User;
 import com.example.reservation.presentation.user.dto.UserDto;
 
 import jakarta.transaction.Transactional;

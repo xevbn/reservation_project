@@ -1,4 +1,4 @@
-package com.example.reservation.jwt;
+package com.example.reservation.infrastructure.jwt;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
-import com.example.reservation.infrastructure.user.User;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -23,8 +22,8 @@ public class JwtProvider {
     private final JwtConfig jwtConfig;
 
     //jwt 발급
-    public String createToken(User user) {
-        String id = user.getId().toString();
+    public String createToken(Long userId) {
+        String id = userId.toString();
         //사용자 권한 설정 추가 요망
         String authorities = "";
         
@@ -43,8 +42,8 @@ public class JwtProvider {
     }
 
     //refreshToken 생성
-    public String generateRefreshToken(User user) {
-        String id = user.getId().toString();
+    public String generateRefreshToken(Long userId) {
+        String id = userId.toString();
 
         //jwt 서명해서 반환
         return Jwts.builder()

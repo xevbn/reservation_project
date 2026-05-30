@@ -1,4 +1,4 @@
-package com.example.reservation.reservation;
+package com.example.reservation.application.resrvation;
 
 import java.io.IOException;
 import java.util.List;

@@ -15,17 +15,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.reservation.application.user.AuthService;
-import com.example.reservation.jwt.JwtConfig;
+import com.example.reservation.infrastructure.jwt.JwtConfig;
 import com.example.reservation.presentation.user.dto.AuthResponse;
 import com.example.reservation.presentation.user.dto.LoginRequest;
 import com.example.reservation.presentation.user.dto.LoginResponse;
 import com.example.reservation.presentation.user.dto.UserDto;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
     private final JwtConfig jwtConfig;

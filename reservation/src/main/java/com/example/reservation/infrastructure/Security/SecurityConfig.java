@@ -1,4 +1,4 @@
-package com.example.reservation.Security;
+package com.example.reservation.infrastructure.Security;
 
 import java.util.List;
 
@@ -20,8 +20,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.example.reservation.jwt.JwtAuthorizationFilter;
-import com.example.reservation.jwt.JwtProvider;
+import com.example.reservation.infrastructure.jwt.JwtAuthorizationFilter;
+import com.example.reservation.infrastructure.jwt.JwtProvider;
 
 import lombok.AllArgsConstructor;
 

@@ -1,15 +1,13 @@
-package com.example.reservation.application.reservation;
+package com.example.reservation.application.resrvation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.example.reservation.application.resource.ResourceRepository;
@@ -17,6 +15,7 @@ import com.example.reservation.application.user.UserRepository;
 import com.example.reservation.common.BusinessException;
 import com.example.reservation.common.ErrorCode;
 import com.example.reservation.domain.ReservationDomain;
+import com.example.reservation.domain.ResourceDomain;
 import com.example.reservation.domain.UserDomain;
 
 import jakarta.transaction.Transactional;
@@ -34,16 +33,13 @@ public class ReservationService {
     private final RedisTemplate<String, String> redisTemplate;
 
     //예약 작성
-    public ReservationDomain makeReservation(LocalDate date, LocalTime start, LocalTime end, long resourceId, long userId) {
-        resourceRepository.findById(resourceId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
-            
+    public ReservationDomain makeReservation(LocalDate date, LocalTime start, LocalTime end, Long resourceId, Long userId) {
         String reservationTime = date.toString() + "|" + start.toString() + end.toString();
         
         UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        log.info("Reservation [생성 시도] - user: {}, resource: {}, time: {}", userId, resourceId, reservationTime);
+        log.info("Reservation [생성 시도] - user: {}, resource: {}, time: {}", user.getId(), resourceId, reservationTime);
 
         //중복된 예약이 있을 시
         boolean overlaps = reservationRepository.existsOverlap(resourceId, start, end, date);
@@ -57,7 +53,7 @@ public class ReservationService {
             start,
             end,
             resourceId,
-            user.getId()
+            userId
         );
 
         ReservationDomain reserved = reservationRepository.save(newReservation);
@@ -73,16 +69,16 @@ public class ReservationService {
     }
 
     //사용자 별 예약 확인
-    public List<ReservationDomain> findReservationByUser(long userId) {
+    public List<ReservationDomain> findReservationByUser(Long userId) {
         UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        return reservationRepository.findByUserId(user.getId());
+        return reservationRepository.findByUser(userId);
     }
 
     //예약 취소
     public void cancelReservation(Long id, Long userId) {
-        userRepository.findById(userId)
+        UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         ReservationDomain reservation = reservationRepository.findById(id)
@@ -101,11 +97,12 @@ public class ReservationService {
     //예약 변경
     public ReservationDomain changeReservation(Long id, LocalDate newDate, LocalTime newStart, LocalTime newEnd, 
         Long resourceId, Long userId) {
+
         log.info("Reservation [변경 시도] - id: {}", id);
-        resourceRepository.findById(resourceId)
+        ResourceDomain resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        userRepository.findById(userId)
+        UserDomain user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         ReservationDomain reservation = reservationRepository.findById(id)
@@ -136,6 +133,7 @@ public class ReservationService {
         reservation.changeDate(newDate);
         reservation.changeStartTime(newStart);
         reservation.changeEndTime(newEnd);
+        reservation.changeResourceId(resourceId);
 
         publishUpdate("DELETE", prevDate, prevResourceId);
         publishUpdate("ADD", newDate, resourceId);
@@ -158,9 +156,7 @@ public class ReservationService {
     //일자 및 리소스 id를 통해 예약 리스트 반환
     //이거 도대체 왜 있음????? 반환 없는데???
     public List<ReservationDomain> getReservationsByDateAndResourceId(LocalDate date, Long resourceId) {
-        resourceRepository.findById(resourceId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
-        List<ReservationDomain> reservations = reservationRepository.findByDateAndResourceId(date, resourceId);
+        List<ReservationDomain> reservations = reservationRepository.findByResourceIdAndDate(resourceId, date);
 
         return reservations;
     }
@@ -173,10 +169,10 @@ public class ReservationService {
 
     //해당 시간대가 점유 중임을 확인하기 위한 시간대-부울 반환
     public Map<String, Boolean> getReservedList(LocalDate date, Long resourceId) {
-        resourceRepository.findById(resourceId)
+        ResourceDomain resource = resourceRepository.findById(resourceId)
             .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        List<ReservationDomain> reserved = reservationRepository.findByDateAndResourceId(date, resourceId);
+        List<ReservationDomain> reserved = reservationRepository.findByResourceIdAndDate(resourceId, date);
 
         List<LocalTime> reservedTime;
         reservedTime = reserved.stream()
@@ -195,7 +191,7 @@ public class ReservationService {
     }
 
     public void publishUpdate(String action, LocalDate date, Long resourceId) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-DD");
         String payLoad = String.format("{\"action\":\"%s\",\"date\":\"%s\",\"resourceId\":%d}",
             action, date.format(formatter), resourceId);
         redisTemplate.convertAndSend("SLOT_UPDATE", payLoad);

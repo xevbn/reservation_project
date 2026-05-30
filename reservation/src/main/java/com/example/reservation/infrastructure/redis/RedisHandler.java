@@ -1,4 +1,4 @@
-package com.example.reservation.redis;
+package com.example.reservation.infrastructure.redis;
 
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.ValueOperations;
