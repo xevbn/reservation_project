@@ -1,0 +1,32 @@
+package com.example.reservation.infrastructure.jwt;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
+@Configuration
+public class JwtConfig {
+    private final static Long expireTime = 5 * 60 * 1000L;      //액세스 토큰 5분
+    private final static Long refreshExpire = 60 * 60 * 1000L;      //리프레시 토큰 1시간
+    
+    @Bean
+    public SecretKey jwtSigningKey() {
+        return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    }
+
+    public static Long getExpiry() {
+        return expireTime;
+    }
+
+    public static Long getRefreshExpiry() {
+        return refreshExpire;
+    }
+
+    public static int getRefreshExpirySec() {
+        return refreshExpire.intValue() / 1000;
+    }
+}

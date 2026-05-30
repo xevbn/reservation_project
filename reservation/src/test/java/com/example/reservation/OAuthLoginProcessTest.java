@@ -13,12 +13,13 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.example.reservation.infrastructure.Security.CustomUserDetails;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.example.reservation.Security.CustomUserDetails;
 
 import jakarta.servlet.http.Cookie;
 import okhttp3.mockwebserver.MockResponse;

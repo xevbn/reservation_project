@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.reservation.redis.RedisSingleDataServiceImpl;
+import com.example.reservation.infrastructure.redis.RedisSingleDataServiceImpl;
 import com.example.reservation.user.UserDto;
 import com.example.reservation.user.UserService;
 import com.fasterxml.jackson.core.type.TypeReference;
